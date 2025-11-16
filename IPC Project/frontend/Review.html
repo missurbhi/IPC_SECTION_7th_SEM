@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review & Submit Complaint</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary-blue': '#1e40af', // Darker blue for accents
+                        'light-blue': '#3b82f6', // Standard blue
+                    }
+                }
+            }
+        }
+
+        // --- Utility to show feedback messages (Loading, Success, Error) ---
+        function showFeedback(type, message) {
+            const card = document.getElementById('reviewCard');
+            let icon = '';
+            let color = '';
+
+            switch (type) {
+                case 'success':
+                    icon = '✅';
+                    color = 'text-green-600';
+                    break;
+                case 'error':
+                    icon = '❌';
+                    color = 'text-red-600';
+                    break;
+                case 'loading':
+                    icon = '⏳';
+                    color = 'text-yellow-600';
+                    break;
+                default:
+                    icon = 'ℹ️';
+                    color = 'text-gray-600';
+            }
+            
+            card.innerHTML = `
+                <div class="p-8">
+                    <h1 class="text-4xl font-extrabold ${color} mb-4 text-center">${icon} ${type.charAt(0).toUpperCase() + type.slice(1)}</h1>
+                    <p class="text-center text-lg text-gray-700">${message}</p>
+                    <div class="mt-8 text-center">
+                        <button onclick="window.location.reload()" class="px-6 py-3 bg-primary-blue text-white font-semibold rounded-full shadow-lg hover:bg-light-blue transition">Start New Complaint</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // --- API Utility with Exponential Backoff ---
+        async function fetchWithRetries(url, data, retries = 3) {
+            // FIX: Trim whitespace from the URL to prevent 405 Method Not Allowed error
+            const cleanUrl = url.trim(); 
+
+            for (let i = 0; i < retries; i++) {
+                let response;
+                try {
+                    response = await fetch(cleanUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    // Check for non-OK status codes
+                    if (!response.ok) {
+                        const errorStatus = response.status;
+                        let errorText = await response.text(); // Read body only once
+                        let errorData = {};
+                        try {
+                            // Attempt to parse the error body if it looks like JSON
+                            errorData = JSON.parse(errorText);
+                        } catch (e) {
+                            // If JSON parsing fails, use the raw text
+                            errorData = { message: errorText };
+                        }
+
+                        // Log the full error from the server
+                        console.error(`[API ERROR] Status: ${errorStatus}`, errorData);
+
+                        if (errorStatus === 400 || errorStatus === 405) {
+                            // Bad Request or Method Not Allowed - non-retryable error
+                            throw new Error(`API Error (Status ${errorStatus}): ${errorData.error || errorData.message || 'Check Console for Server Response'}`);
+                        } else {
+                            // Retryable error (5xx or temporary network issue)
+                            throw new Error(`Server responded with status: ${errorStatus}`);
+                        }
+                    } 
+                    
+                    return response.json(); // If response.ok is true
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error.message);
+                    if (i === retries - 1) {
+                        throw new Error(`Failed to submit complaint after ${retries} attempts: ${error.message}`);
+                    }
+                    // Wait 2^i seconds before retrying
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+
+        // --- Data Loading and Display ---
+        let allComplaintData = {};
+
+        function loadAllData() {
+            // Retrieve data from all pages
+            const dataP1 = JSON.parse(localStorage.getItem('complaintData_Page1') || '{}');
+            const dataP2 = JSON.parse(localStorage.getItem('complaintData_Page2') || '{}');
+            const dataP3 = JSON.parse(localStorage.getItem('complaintData_Page3') || '{}');
+
+            allComplaintData = { ...dataP1, ...dataP2, ...dataP3 };
+            
+            // Show a warning if critical data (Page 1) is missing
+            if (!allComplaintData.fullName) {
+                 document.getElementById('reviewSummary').innerHTML = `
+                     <div class="p-6 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-lg">
+                         <p class="font-bold mb-2">Critical Data Missing!</p>
+                         <p>It looks like the **Complainant Details (Page 1)** are missing from storage. Please go back to the first page, fill in all required fields, and proceed again.</p>
+                     </div>
+                 `;
+                 document.getElementById('submitBtn').disabled = true;
+                 return; 
+            }
+
+            // Helper function to render a key/value pair
+            const renderField = (label, value) => `
+                <div class="flex flex-col sm:flex-row justify-between py-2 border-b border-gray-100">
+                    <span class="font-medium text-gray-600 w-full sm:w-1/3">${label}</span>
+                    <span class="text-gray-900 mt-1 sm:mt-0 w-full sm:w-2/3 break-words">${value || 'Not provided'}</span>
+                </div>
+            `;
+            
+            // --- SECTION 1: COMPLAINT DETAILS ---
+            let htmlP1 = `
+                <h2 class="text-xl font-bold text-primary-blue mb-4 border-b pb-2">1. Complaint Details (Complainant)</h2>
+                <div class="space-y-2 mb-8">
+                    ${renderField('Full Name', allComplaintData.fullName)}
+                    ${renderField('Father’s / Husband’s Name', allComplaintData.relativeName)}
+                    ${renderField('Residential Address', allComplaintData.address)}
+                    ${renderField('Mobile Number', allComplaintData.mobileNumber)}
+                    ${renderField('Email Address', allComplaintData.email)}
+                </div>
+            `;
+
+            // --- SECTION 2: INCIDENT DETAILS ---
+            let htmlP2 = `
+                <h2 class="text-xl font-bold text-primary-blue mb-4 border-b pb-2">2. Incident Details</h2>
+                <div class="space-y-2 mb-8">
+                    ${renderField('Date of Incident', allComplaintData.incidentDate)}
+                    ${renderField('Time of Incident', allComplaintData.incidentTime)}
+                    
+                    ${renderField('Nature of Offence', allComplaintData.offence_type)} 
+                    
+                    ${renderField('Place of Incident', allComplaintData.incidentPlace)}
+                    
+                    ${renderField('Detailed Description', allComplaintData.description)} 
+                </div>
+                <!-- IPC Prediction -->
+                <h3 class="text-lg font-bold text-green-700 mt-6 mb-3">Legal Suggestion (Auto-Predicted)</h3>
+                <div class="p-3 bg-green-50 rounded-lg border-l-4 border-green-500 mb-8">
+                    ${renderField('Suggested IPC Section', allComplaintData.ipcSection || 'N/A')}
+                    ${renderField('Prediction Justification', allComplaintData.ipcJustification || 'N/A')}
+                </div>
+            `;
+
+            // --- SECTION 3: ACCUSED & WITNESSES ---
+            let htmlP3 = `
+                <h2 class="text-xl font-bold text-primary-blue mb-4 border-b pb-2">3. Accused & Witnesses</h2>
+                
+                <h3 class="text-lg font-bold text-red-700 mt-6 mb-3">Accused (if known)</h3>
+                <div class="p-3 bg-red-50 rounded-lg border-l-4 border-red-500 mb-8 space-y-2">
+                    ${renderField('Name of Accused', allComplaintData.accusedName)}
+                    ${renderField('Address of Accused', allComplaintData.accusedAddress)}
+                    ${renderField('Physical Description', allComplaintData.accusedDescription)}
+                </div>
+
+                <h3 class="text-lg font-bold text-green-700 mt-6 mb-3">Witness(es)</h3>
+                <div class="p-3 bg-green-50 rounded-lg border-l-4 border-green-500 mb-8 space-y-2">
+                    ${renderField('Name of Witness', allComplaintData.witnessName)}
+                    ${renderField('Address of Witness', allComplaintData.witnessAddress)}
+                </div>
+            `;
+
+            document.getElementById('reviewSummary').innerHTML = htmlP1 + htmlP2 + htmlP3;
+        }
+
+        async function confirmAndSubmit() {
+            if (!allComplaintData || !allComplaintData.fullName) {
+                showFeedback('error', 'Cannot submit: Critical complainant data is missing.');
+                return;
+            }
+
+            // 1. **TRANSFORM DATA** to the nested structure the Flask API expects
+            const submissionPayload = {
+                complainant: {
+                    name: allComplaintData.fullName || '',
+                    fatherName: allComplaintData.relativeName || '',
+                    address: allComplaintData.address || '',
+                    mobile: allComplaintData.mobileNumber || '',
+                    email: allComplaintData.email || '',
+                },
+                incident: {
+                    date: allComplaintData.incidentDate || '',
+                    time: allComplaintData.incidentTime || '',
+                    place: allComplaintData.incidentPlace || '',
+                    offenceType: allComplaintData.offence_type || '', // Note: Using the correct key from page 2
+                    description: allComplaintData.description || '', // Note: Using the correct key from page 2
+                },
+                accused: {
+                    name: allComplaintData.accusedName || '',
+                    address: allComplaintData.accusedAddress || '',
+                    description: allComplaintData.accusedDescription || '',
+                },
+                // Assuming only one witness pair is captured, structure it as an array
+                witnesses: allComplaintData.witnessName ? [{
+                    name: allComplaintData.witnessName,
+                    address: allComplaintData.witnessAddress
+                }] : [],
+                
+                predicted_ipc: allComplaintData.ipcSection || 'N/A',
+                // ipcJustification is not sent to DB but kept here for completeness
+            };
+
+            // !!! DEBUG STEP 1: Log the payload being sent !!!
+            console.log("[FRONTEND DEBUG] Attempting to submit payload:", submissionPayload);
+
+            // **FIXED URL: Use the explicit Flask port 8000**
+            const backendUrl = 'http://127.0.0.1:8000/submit_fir';
+
+
+            // 2. Show loading indicator
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').innerHTML = 'Submitting...';
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+
+            try {
+                // 3. Send data to Flask API
+                // Calling fetch with the explicit backend URL
+                const result = await fetchWithRetries(backendUrl, submissionPayload);
+
+                // 4. Handle successful response (expecting 'tracking_id')
+                if (result && result.tracking_id) {
+                    // Clear local storage upon successful submission
+                    localStorage.removeItem('complaintData_Page1');
+                    localStorage.removeItem('complaintData_Page2');
+                    localStorage.removeItem('complaintData_Page3');
+                    
+                    showFeedback('success', `Your FIR has been registered successfully! Tracking ID: **${result.tracking_id}**`);
+                } else {
+                    // Handles cases where the call was technically successful (200) but didn't return the expected tracking ID
+                    throw new Error(result.message || 'Submission failed: Successful response received, but tracking ID was missing.');
+                }
+            } catch (error) {
+                // 5. Handle errors
+                console.error("FATAL Submission Error:", error);
+                showFeedback('error', `Submission failed. Error: ${error.message}. Check the browser console for details.`);
+            }
+        }
+
+        window.onload = loadAllData;
+    </script>
+
+</head>
+<body>
+
+    <nav class="bg-indigo-800 text-white p-4 shadow-xl sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center" >
+            <a href="home.html" class="text-3xl font-extrabold rounded-xl px-3 py-1 tracking-wider transition-colors duration-300 transform hover:scale-105">FIR Online</a>
+            <div class="md:hidden">
+                <button id="menu-button" class="text-white p-2 focus:outline-none rounded-lg hover:bg-indigo-700 transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Desktop/Mobile Menu -->
+            <div id="nav-menu" class="hidden md:flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0 mt-4 md:mt-0 absolute md:relative top-full left-0 w-full md:w-auto bg-indigo-800 md:bg-transparent p-4 md:p-0 shadow-lg md:shadow-none">
+                <a href="home.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">Home</a>
+                <a href="about.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">About</a>
+                <a href="contact.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">Contact</a>
+                <a href="login.html" class="px-4 py-2 rounded-xl text-lg font-medium bg-indigo-600 hover:bg-indigo-500 transition-colors duration-300">Login</a>
+                <a href="usersignup.html" class="px-4 py-2 rounded-xl text-lg font-medium border border-white hover:bg-white hover:text-indigo-800 transition-colors duration-300">Sign Up</a>
+            </div>
+        </div>
+    </nav>   
+
+ <main class="flex-grow flex justify-center items-start py-10">   
+   
+ <div id="reviewCard" class="w-full max-w-4xl bg-white p-6 sm:p-10 rounded-xl shadow-2xl border-2 border-primary-blue">
+    <h1 class="text-3xl font-extrabold text-primary-blue mb-8 text-center border-b-2 border-light-blue pb-3">
+        Final Review and Submission
+    </h1>
+
+    <div id="reviewSummary" class="text-sm">
+        <!-- Summary data will be dynamically injected here by JavaScript -->
+        <p class="text-center text-gray-500">Loading complaint data...</p>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="flex justify-between items-center mt-10 border-t pt-4">
+        <button type="button" 
+                class="px-6 py-3 bg-gray-500 text-white font-semibold rounded-full shadow-lg hover:bg-gray-600 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-opacity-50" 
+                onclick="window.location.href='Witnesspage.html'">
+            &larr; Go Back to Edit
+        </button>
+
+        <div class="relative">
+            <button type="button" 
+                    id="submitBtn"
+                    class="px-8 py-3 bg-red-600 text-white font-extrabold rounded-full shadow-lg hover:bg-red-700 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-500 focus:ring-opacity-50 disabled:bg-red-400 disabled:cursor-not-allowed"
+                    onclick="confirmAndSubmit()">
+                Confirm and Submit Complaint
+            </button>
+            <span id="loadingIndicator" class="hidden absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 border-4 border-t-4 border-red-900 border-opacity-30 rounded-full animate-spin"></span>
+        </div>
+    </div>
+</div>
+ </main>
+
+  <!-- Footer (Consistent with other pages) -->
+    <footer class="bg-indigo-900 text-white p-6 text-center mt-auto shadow-inner">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-center md:space-x-8 mb-4">
+                <a href="about.html" class="text-sm hover:text-indigo-300 transition-colors duration-300">About Us</a>
+                <a href="contact.html" class="text-sm hover:text-indigo-300 transition-colors duration-300">Support</a>
+                <a href="#" class="text-sm hover:text-indigo-300 transition-colors duration-300">Privacy Policy</a>
+            </div>
+            <p class="text-xs opacity-80">© 2024 FIR Online. All rights reserved. Empowering citizens through digital governance.</p>
+        </div>
+    </footer>
+</body>
+</html>

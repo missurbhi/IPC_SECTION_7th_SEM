@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIR Submission: Multi-Step Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+        .step-label {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .card {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="bg-indigo-700 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 text-white font-bold text-xl rounded-lg p-1 bg-indigo-500">
+                        <svg class="w-6 h-6 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        E-FIR System
+                    </div>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-4" id="nav-menu">
+                    <p id="user-info" class="text-sm text-indigo-200 bg-indigo-600 px-3 py-1 rounded-full"></p>
+                    <a href="#" class="text-white hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="#" class="text-white bg-indigo-800 px-3 py-2 rounded-md text-sm font-medium">File FIR</a>
+                </div>
+                <div class="flex items-center sm:hidden">
+                    <button id="menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-indigo-200 hover:text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-700 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-6">File Your First Information Report (FIR)</h1>
+        
+        <!-- Progress Bar & Steps -->
+        <div class="bg-white p-6 rounded-xl card mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <span id="step-1-label" class="step-label text-sm text-indigo-600 font-bold" onclick="showStep(1)">1. Complainant</span>
+                <span id="step-2-label" class="step-label text-sm text-gray-500" onclick="showStep(2)">2. Incident Details</span>
+                <span id="step-3-label" class="step-label text-sm text-gray-500" onclick="showStep(3)">3. Accused & Witnesses</span>
+                <span id="step-4-label" class="step-label text-sm text-gray-500" onclick="showStep(4)">4. Review & Submit</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-in-out" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Form Steps -->
+        <form id="fir-form" class="space-y-6">
+            
+            <!-- Step 1: Complainant Details -->
+            <div id="step-1" class="bg-white p-8 rounded-xl card hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Complainant Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <label class="block">
+                        <span class="text-gray-700 font-medium">Full Name <span class="text-red-500">*</span></span>
+                        <input id="complainant-name" type="text" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700 font-medium">Father's / Husband's Name <span class="text-red-500">*</span></span>
+                        <input id="complainant-father-name" type="text" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                    </label>
+                    <label class="block col-span-full">
+                        <span class="text-gray-700 font-medium">Residential Address <span class="text-red-500">*</span></span>
+                        <textarea id="complainant-address" required rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border"></textarea>
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700 font-medium">Mobile Number <span class="text-red-500">*</span></span>
+                        <input id="complainant-mobile" type="tel" required pattern="[0-9]{10}" title="Must be 10 digits" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700 font-medium">Email Address (Optional)</span>
+                        <input id="complainant-email" type="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                    </label>
+                </div>
+                <div class="flex justify-end mt-8">
+                    <button type="button" onclick="nextStep(1)" class="flex items-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition duration-150">
+                        Next: Incident Details
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Incident Details -->
+            <div id="step-2" class="bg-white p-8 rounded-xl card hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Incident Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <label class="block">
+                        <span class="text-gray-700 font-medium">Date of Incident <span class="text-red-500">*</span></span>
+                        <input id="incident-date" type="date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700 font-medium">Time of Incident <span class="text-red-500">*</span></span>
+                        <input id="incident-time" type="time" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700 font-medium">Nature of Offence <span class="text-red-500">*</span></span>
+                        <select id="offence_type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                            <option value="">Select Type</option>
+                            <option value="Theft">Theft/Burglary</option>
+                            <option value="Assault">Assault/Battery</option>
+                            <option value="Cheating">Cheating/Fraud</option>
+                            <option value="Harassment">Harassment/Threat</option>
+                            <option value="Other">Other (Describe below)</option>
+                        </select>
+                    </label>
+                </div>
+
+                <label class="block mb-6">
+                    <span class="text-gray-700 font-medium">Place of Incident <span class="text-red-500">*</span></span>
+                    <input id="incident-place" type="text" required placeholder="Street, City, State/Province" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                </label>
+                
+                <label class="block mb-6">
+                    <span class="text-gray-700 font-medium">Detailed Description of Incident <span class="text-red-500">*</span></span>
+                    <textarea id="description" required rows="5" placeholder="Describe chronologically what happened, who was involved, and what evidence exists." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Minimum 50 characters required for prediction.</p>
+                </label>
+
+                <!-- IPC Prediction Section (Gemini API Integration via Flask Mock) -->
+               
+                    <!-- Prediction Result -->
+
+    <div class="text-center">
+        <button type="button" id="predictBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg">
+          Predict IPC Section
+        </button>
+      </div>
+
+    <div id="predictionResult" class="hidden mt-6 border-t pt-4">
+      <h2 class="text-lg font-bold text-gray-800 mb-2">Predicted IPC Section</h2>
+      <p id="ipcSection" class="text-blue-700 font-semibold"></p>
+      <p id="ipcJustification" class="text-gray-700 mt-2"></p>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="hidden text-center mt-6">
+      <div class="animate-spin inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+      <p class="mt-2 text-gray-500">Analyzing incident...</p>
+    </div>
+
+
+                <div class="flex justify-between mt-8">
+                    <button type="button" onclick="prevStep()" class="flex items-center text-gray-700 hover:text-gray-900 font-semibold py-2 px-4 rounded-lg transition duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Previous
+                    </button>
+                    <button type="button" onclick="nextStep(2)" class="flex items-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition duration-150">
+                        Next: Accused & Witnesses
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Accused and Witnesses -->
+            <div id="step-3" class="bg-white p-8 rounded-xl card hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Accused & Witnesses</h2>
+                
+                <!-- Accused Details (Optional) -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Accused Person Details (If Known)</h3>
+                    <div class="space-y-4">
+                        <label class="block">
+                            <span class="text-gray-700">Name of Accused</span>
+                            <input id="accused-name" type="text" placeholder="Name or 'Unknown'" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Accused Address (If Known)</span>
+                            <textarea id="accused-address" rows="2" placeholder="Address of the accused" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border"></textarea>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Physical Description</span>
+                            <textarea id="accused-description" rows="2" placeholder="Height, build, distinguishing marks, clothes worn, etc." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border"></textarea>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Witness Details (Optional) -->
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">Witness Details (If Any)</h3>
+                    <div id="witness-container" class="space-y-4">
+                        <!-- Initial Witness Block -->
+                        <div class="bg-gray-100 p-4 rounded-lg flex flex-col space-y-2 witness-block">
+                            <h4 class="font-semibold text-sm text-gray-600">Witness 1</h4>
+                            <label class="block">
+                                <span class="text-gray-700">Witness Name</span>
+                                <input type="text" class="witness-name mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                            </label>
+                            <label class="block">
+                                <span class="text-gray-700">Witness Mobile</span>
+                                <input type="tel" class="witness-mobile mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                            </label>
+                            <button type="button" onclick="removeWitness(this)" class="text-red-500 hover:text-red-700 text-sm mt-2 self-end hidden">Remove</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addWitness()" class="mt-4 flex items-center text-indigo-600 hover:text-indigo-800 font-medium text-sm">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Add Another Witness
+                    </button>
+                </div>
+
+                <div class="flex justify-between mt-8">
+                    <button type="button" onclick="prevStep()" class="flex items-center text-gray-700 hover:text-gray-900 font-semibold py-2 px-4 rounded-lg transition duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Previous
+                    </button>
+                    <button type="button" onclick="nextStep()" class="flex items-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition duration-150">
+                        Next: Review & Submit
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Review and Submit -->
+
+        </form>
+
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="custom-alert" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-lg shadow-2xl max-w-sm w-full transform transition-all duration-300 scale-100">
+            <h3 id="alert-title" class="text-xl font-bold text-indigo-700 mb-2">Alert Title</h3>
+            <p id="alert-message" class="text-gray-700 mb-4">Alert Message.</p>
+            <div id="alert-content" class="bg-gray-100 p-3 rounded-md text-sm mb-4"></div>
+            <div class="flex justify-end">
+                <button onclick="closeAlert()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+
+       const apiUrl = "http://127.0.0.1:8000/predict_ipc";
+      document.getElementById("predictBtn").addEventListener("click", async () => {
+      const description = document.getElementById("description").value.trim();
+      const offence_type = document.getElementById("offence_type").value.trim();
+
+      if (!description || !offence_type) {
+        alert("Please enter both offence type and description.");
+        return;
+      }
+// Show loading spinner
+      document.getElementById("loadingSpinner").classList.remove("hidden");
+      document.getElementById("predictionResult").classList.add("hidden");
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description, offence_type })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Hide loading
+        document.getElementById("loadingSpinner").classList.add("hidden");
+
+        if (data.error) {
+          alert("Error: " + data.error);
+          return;
+        }
+
+        // Display result
+        document.getElementById("predictionResult").classList.remove("hidden");
+        document.getElementById("ipcSection").textContent = data.predicted_ipc || "No IPC section predicted.";
+        document.getElementById("ipcJustification").textContent = data.justification || "";
+      } 
+      catch (error) {
+        document.getElementById("loadingSpinner").classList.add("hidden");
+        alert("Failed to connect to the server: " + error.message);
+        console.error("Prediction error:", error);
+      }
+    });
+        
+        // Global State variables
+        let currentStep = 1;
+        const totalSteps = 4;
+        
+        // Mock User ID for demonstration 
+        let userId = 'mock-user-' + Math.random().toString(36).substring(2, 9);
+        document.getElementById('user-info').textContent = `User ID (Mock): ${userId}`;
+
+        // IPC Section input/display elements
+        const ipcDisplay = document.getElementById('ipc-section-display');
+        const ipcInput = document.getElementById('ipc-section-input');
+        const predictButton = document.getElementById('predict-ipc-button');
+        const incidentDescription = document.getElementById('description');
+        const offenceType = document.getElementById('offence_type');
+        
+        // --- Flask Backend Call Logic for IPC Prediction ---
+
+        /**
+         * Sends the incident details to the Flask backend for secure Gemini API processing.
+         * @param {string} description The detailed incident description.
+         * @param {string} offence The type of offence selected.
+         * @returns {Promise<string>} The predicted IPC section string or an error message.
+         */
+        async function callGeminiApi(description, offence) {
+            const apiUrl = '/predict_ipc'; 
+
+            const payload = {
+                description: description,
+                offence_type: offence
+            };
+
+            let response;
+            try {
+                // Implement exponential backoff for retries
+                for (let i = 0; i < 3; i++) {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status !== 429) { // 429 is Too Many Requests
+                        break; 
+                    }
+                    // Wait with exponential backoff
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+
+                // --- ROBUST ERROR CHECKING & JSON PARSING (IMPROVED) ---
+                if (!response.ok) {
+                    const isJson = response.headers.get('content-type')?.includes('application/json');
+                    let errorBody = "No response body received or server error.";
+                    
+                    try {
+                        errorBody = await response.text();
+                        if (isJson && errorBody) {
+                             const errorJson = JSON.parse(errorBody);
+                             // If Flask returned a structured error JSON:
+                             throw new Error(errorJson.error || errorJson.details || `Server returned status ${response.status}`);
+                        }
+                    } catch (e) {
+                         // Catches issues with reading body as text or parsing failed JSON
+                         // Continue using the default errorBody message or the status text
+                    }
+                    
+                    console.error("Flask Endpoint Call Failed. Status:", response.status, "Raw Body:", errorBody.substring(0, 100));
+                    throw new Error(`Server returned status ${response.status}. Details: ${errorBody.substring(0, 100)}...`);
+                }
+
+                // Assume response.ok means we expect JSON result
+                const result = await response.json();
+                
+                if (result.success) {
+                    return result.ipc_section || "Flask returned no IPC section.";
+                } else {
+                    console.error("Flask Backend Error:", result.details);
+                    return `Prediction Error: ${result.error || result.details || 'Unknown API issue'}.`;
+                }
+
+
+            } catch (error) {
+                console.error("Backend Call Error:", error);
+                return `Error during prediction: ${error.message}.`;
+            }
+        }
+
+        window.predictIpcSection = async () => {
+            const description = incidentDescription.value.trim();
+            const offence = offenceType.value;
+
+            if (description.length < 50) {
+                showAlert("Input Required", "Please provide a detailed description of the incident (at least 50 characters) before running the predictor.", "");
+                return;
+            }
+            if (!offence) {
+                showAlert("Input Required", "Please select a Nature of Offence.", "");
+                return;
+            }
+
+            // Show loading state
+            predictButton.disabled = true;
+            predictButton.innerHTML = '<div class="loader mr-2"></div> Predicting...';
+            ipcDisplay.innerHTML = '<div class="flex items-center text-indigo-500"><div class="loader mr-2"></div> Analyzing incident...</div>';
+            ipcInput.value = "Predicting...";
+
+            let predictedIpc = "Consult Legal Counsel"; // Default safe fallback
+
+            try {
+                // Call the new Flask endpoint
+                predictedIpc = await callGeminiApi(description, offence);
+                
+            } catch (error) {
+                console.error("IPC Prediction Failed:", error);
+                predictedIpc = `Prediction Error: ${error.message}`;
+            } finally {
+                // Update UI elements
+                ipcDisplay.innerHTML = `<span class="font-bold text-indigo-800">${predictedIpc}</span>`;
+                ipcInput.value = predictedIpc;
+
+                predictButton.disabled = false;
+                predictButton.innerHTML = '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Predict IPC Section';
+            }
+        }
+
+        // --- Multi-Step Form Logic (No Change) ---
+
+        const steps = [
+            document.getElementById('step-1'),
+            document.getElementById('step-2'),
+            document.getElementById('step-3'),
+            document.getElementById('step-4'),
+        ];
+        const stepLabels = {
+            1: document.getElementById('step-1-label'),
+            2: document.getElementById('step-2-label'),
+            3: document.getElementById('step-3-label'),
+            4: document.getElementById('step-4-label'),
+        };
+
+        function updateProgressBar() {
+            const progress = (currentStep - 1) / (totalSteps - 1) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            
+            Object.keys(stepLabels).forEach(stepNum => {
+                const label = stepLabels[stepNum];
+                label.classList.remove('text-indigo-600', 'font-bold');
+                label.classList.add('text-gray-500');
+                if (parseInt(stepNum) <= currentStep) {
+                    label.classList.add('text-indigo-600', 'font-bold');
+                    label.classList.remove('text-gray-500');
+                }
+            });
+        }
+
+        function showStep(step) {
+            steps.forEach((s, index) => {
+                s.classList.add('hidden');
+                if (index + 1 === step) {
+                    s.classList.remove('hidden');
+                }
+            });
+            currentStep = step;
+            updateProgressBar();
+            
+            if (step === 4) {
+                updateReview();
+            }
+        }
+
+        window.nextStep = (stepNumber) => {
+            if (stepNumber && !validateStep(stepNumber)) {
+                showAlert("Missing Fields", "Please fill in all required fields to continue.", "Required fields are marked in red if missed.");
+                return;
+            }
+            if (currentStep < totalSteps) {
+                showStep(currentStep + 1);
+            }
+        }
+
+        window.prevStep = () => {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        }
+
+        function validateStep(step) {
+            const currentForm = steps[step - 1];
+            // Only validate required fields that are not hidden 
+            const requiredInputs = currentForm.querySelectorAll('[required]:not(.hidden [required])');
+            let isValid = true;
+            requiredInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.style.borderColor = 'red';
+                } else {
+                    input.style.borderColor = '#d1d5db'; // Reset border color
+                }
+            });
+            return isValid;
+        }
+
+        // --- Witness Management (No Change) ---
+
+        let witnessCount = 1;
+
+        window.addWitness = () => {
+            witnessCount++;
+            const container = document.getElementById('witness-container');
+            const newWitnessBlock = document.createElement('div');
+            newWitnessBlock.className = 'bg-gray-100 p-4 rounded-lg flex flex-col space-y-2 witness-block';
+            newWitnessBlock.innerHTML = `
+                <h4 class="font-semibold text-sm text-gray-600">Witness ${witnessCount}</h4>
+                <label class="block">
+                    <span class="text-gray-700">Witness Name</span>
+                    <input type="text" class="witness-name mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                </label>
+                <label class="block">
+                    <span class="text-gray-700">Witness Mobile</span>
+                    <input type="tel" class="witness-mobile mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 border">
+                </label>
+                <button type="button" onclick="removeWitness(this)" class="text-red-500 hover:text-red-700 text-sm mt-2 self-end">Remove</button>
+            `;
+            container.appendChild(newWitnessBlock);
+            // Show remove button on all blocks if count > 1
+            document.querySelectorAll('.witness-block button').forEach(btn => btn.classList.remove('hidden'));
+        }
+
+        window.removeWitness = (button) => {
+            const block = button.closest('.witness-block');
+            block.remove();
+            
+            // Re-index titles and handle remove button visibility
+            const blocks = document.querySelectorAll('.witness-block');
+            blocks.forEach((b, index) => {
+                b.querySelector('h4').textContent = `Witness ${index + 1}`;
+            });
+            witnessCount = blocks.length;
+            if (witnessCount <= 1) {
+                 // Only hide the remove button on the one remaining block
+                 if (blocks.length === 1) blocks[0].querySelector('button').classList.add('hidden');
+            }
+        }
+
+        // Initialize witness remove button visibility on load
+        function initializeWitnessBlock() {
+            const blocks = document.querySelectorAll('.witness-block');
+            if (blocks.length <= 1) {
+                blocks.forEach(b => b.querySelector('button').classList.add('hidden'));
+            } else {
+                 blocks.forEach(b => b.querySelector('button').classList.remove('hidden'));
+            }
+            witnessCount = blocks.length;
+        }
+
+
+        // --- Review Step Data Aggregation (No Change) ---
+       
+
+        // --- Custom Alert/Modal Functions (No Change) ---
+
+        const customAlert = document.getElementById('custom-alert');
+        const alertTitle = document.getElementById('alert-title');
+        const alertMessage = document.getElementById('alert-message');
+        const alertContent = document.getElementById('alert-content');
+
+        window.showAlert = (title, message, contentHtml = '') => {
+            alertTitle.textContent = title;
+            alertMessage.textContent = message;
+            alertContent.innerHTML = contentHtml;
+            customAlert.classList.remove('hidden');
+        }
+
+        window.closeAlert = () => {
+            customAlert.classList.add('hidden');
+        }
+        
+        // --- Initial Load ---
+        window.onload = function() {
+             // Hamburger menu functionality
+             document.getElementById('menu-button').addEventListener('click', function() {
+                 const menu = document.getElementById('nav-menu');
+                 menu.classList.toggle('hidden');
+                 menu.classList.toggle('flex');
+             });
+
+             showStep(1); 
+             initializeWitnessBlock();
+        };
+
+    </script>
+</body>
+</html>

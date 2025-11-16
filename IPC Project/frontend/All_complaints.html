@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Complaints Dashboard</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .action-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .action-button:hover {
+            transform: translateY(-1px);
+        }
+        /* Status Badges */
+        .accepted { background-color: #d1fae5; color: #065f46; } /* Light green for accepted */
+        .rejected { background-color: #fee2e2; color: #991b1b; } /* Light red for rejected */
+        .pending { background-color: #fffbeb; color: #92400e; } /* Light yellow for pending */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* full rounded */
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        /* Custom scrollbar styling for the table container */
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1; /* slate-300 */
+            border-radius: 4px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f5f9; /* slate-100 */
+        }
+
+        /* Styling for the table rows */
+        tbody tr:nth-child(odd) {
+            background-color: #f8fafc; /* slate-50 */
+        }
+    </style>
+    <script>
+        // Set the base URL for the backend API
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+
+        // State management
+        let allComplaints = [];
+
+        // --- Helper Functions ---
+
+        /**
+         * Formats a date string (YYYY-MM-DD) to a more readable format.
+         * @param {string} dateString - The date string from the database.
+         * @returns {string} - Formatted date or original string if invalid.
+         */
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            try {
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return new Date(dateString).toLocaleDateString(undefined, options);
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        /**
+         * Determines the Tailwind classes for a complaint status badge.
+         * @param {string} status - The status string (Pending, Accepted, Rejected).
+         * @returns {string} - Tailwind class string.
+         */
+        function getStatusClasses(status) {
+            switch (status) {
+                case 'Accepted':
+                    return 'bg-green-100 text-green-700 ring-green-600/20';
+                case 'Rejected':
+                    return 'bg-red-100 text-red-700 ring-red-600/20';
+                case 'Pending':
+                default:
+                    return 'bg-yellow-100 text-yellow-700 ring-yellow-600/20';
+            }
+        }
+
+        /**
+         * Converts the status to a capitalized display version.
+         * @param {string} status - The status string.
+         * @returns {string} - Display text.
+         */
+        function formatStatus(status) {
+             if (!status) return 'N/A';
+             return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+        }
+
+        // --- Data Fetching ---
+
+        /**
+         * Fetches all complaints from the server.
+         */
+        async function fetchAllComplaints() {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const errorMessage = document.getElementById('error-message');
+            loadingIndicator.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            document.getElementById('complaints-table-body').innerHTML = ''; // Clear table
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/get_all_complaints`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                allComplaints = data;
+                renderComplaints(allComplaints);
+
+            } catch (error) {
+                console.error('Error fetching complaints:', error);
+                errorMessage.textContent = `Failed to load complaints. Please ensure the Python server is running on ${API_BASE_URL}. Details: ${error.message}`;
+                errorMessage.classList.remove('hidden');
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        // --- Rendering & Filtering ---
+
+        /**
+         * Renders the filtered list of complaints to the table.
+         * @param {Array} complaintsToRender - The array of complaint objects.
+         */
+        function renderComplaints(complaintsToRender) {
+            const tbody = document.getElementById('complaints-table-body');
+            tbody.innerHTML = ''; // Clear existing rows
+            
+            if (complaintsToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-500">No complaints found.</td></tr>`;
+                return;
+            }
+
+            complaintsToRender.forEach((complaint, index) => {
+                const status = formatStatus(complaint.status || 'Pending');
+                const statusClasses = getStatusClasses(status);
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-indigo-50 transition-colors duration-150';
+                
+                // Truncate complaint_description for display, show full text on hover
+                const truncatedDescription = complaint.incident_description ? 
+                                             complaint.incident_description.substring(0, 50) + (complaint.incident_description.length > 50 ? '...' : '') : 'N/A';
+
+
+                row.innerHTML = `
+                    <td class="whitespace-nowrap px-6 py-4 font-medium text-gray-900 text-sm">${index + 1}</td>
+                    <td class="whitespace-nowrap px-6 py-4 text-gray-500 text-sm">${formatDate(complaint.incident_date)}</td>
+                    <td class="px-6 py-4 text-gray-500 text-sm">${complaint.complainant_name || 'Anonymous'}</td>
+                    <td class="px-6 py-4 text-gray-500 text-sm">
+                        <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusClasses}">
+                            ${status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-gray-500 text-sm">${complaint.offence_type || 'N/A'}</td>
+                    <td class="px-6 py-4 text-gray-500 text-sm max-w-xs truncate" 
+                        title="${complaint.incident_description || 'N/A'}">
+                        ${truncatedDescription}
+                    </td>
+                    <td class="whitespace-nowrap px-6 py-4 text-gray-500 text-sm">${complaint.predicted_ipc || 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        /**
+         * Applies filtering and searching logic to the complaint list.
+         */
+        function applyFilters() {
+            const filterStatus = document.getElementById('status-filter').value;
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+            let filteredComplaints = allComplaints.filter(complaint => {
+                // 1. Status Filter
+                const statusMatch = filterStatus === 'All' || (complaint.status && formatStatus(complaint.status) === filterStatus);
+                
+                if (!statusMatch) return false;
+
+                // 2. Search Term Filter (checks name, description, and offence type)
+                if (searchTerm.trim() === '') return true;
+
+                const name = (complaint.complainant_name || '').toLowerCase();
+                const description = (complaint.incident_description || '').toLowerCase();
+                const offence = (complaint.offence_type || '').toLowerCase();
+                const ipc = (complaint.predicted_ipc || '').toLowerCase();
+
+                return name.includes(searchTerm) || 
+                       description.includes(searchTerm) || 
+                       offence.includes(searchTerm) ||
+                       ipc.includes(searchTerm);
+            });
+
+            renderComplaints(filteredComplaints);
+        }
+        
+        // --- Initialization ---
+
+        window.onload = () => {
+            // Attach event listeners for filtering
+            document.getElementById('status-filter').addEventListener('change', applyFilters);
+            document.getElementById('search-input').addEventListener('input', applyFilters);
+
+            // Initial data fetch
+            fetchAllComplaints();
+        };
+
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Police Navigation Bar -->
+    <nav class="bg-indigo-800 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="text-2xl font-bold mb-2 md:mb-0">Police Portal</div>
+            <div class="flex flex-wrap justify-center space-x-2 md:space-x-4">
+                <a href="police_dashboard.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Home</a>
+                <a href="all_complaints.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Total Complaints</a>
+                <a href="pending_complaints.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Pending</a>
+                <a href="accepted_complaints.html" class="px-4 py-2 rounded-lg bg-indigo-700 font-semibold transition-colors duration-200">Accepted</a>
+                <a href="rejected_complaints.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Rejected</a>
+                <a href="First.html" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition-colors duration-200">Logout</a>
+            </div>
+        </div>
+    </nav>
+<body class="bg-gray-50 font-sans antialiased min-h-screen">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="sm:flex sm:items-center sm:justify-between mb-8">
+            <div class="min-w-0 flex-1">
+                <h2 class="text-3xl font-bold leading-7 text-gray-900 sm:truncate sm:text-4xl sm:tracking-tight">
+                    All Complaint Records
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">Comprehensive list of all submitted FIRs and their processing status.</p>
+            </div>
+            <!-- Optional: Add a back to main dashboard button here -->
+        </div>
+
+        <!-- Filter and Search Controls -->
+        <div class="flex flex-col md:flex-row gap-4 mb-8 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <!-- Status Filter -->
+            <div class="flex-1">
+                <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
+                <select id="status-filter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                    <option value="All">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+            
+            <!-- Search Input -->
+            <div class="md:flex-2 w-full">
+                <label for="search-input" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                <input type="text" id="search-input" placeholder="Search by name, description, or IPC section..." 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+            </div>
+        </div>
+
+        <!-- Loading Indicator & Error Message -->
+        <div id="loading-indicator" class="hidden text-center py-10">
+            <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-indigo-600 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-lg text-indigo-600 ml-3">Loading complaint data...</span>
+        </div>
+
+        <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4" role="alert">
+            <strong class="font-bold">Error:</strong>
+            <span class="block sm:inline">Could not connect to the server.</span>
+        </div>
+
+        <!-- Complaints Table -->
+        <div class="mt-8 flow-root">
+            <div class="table-container overflow-x-auto rounded-xl shadow-xl ring-1 ring-black ring-opacity-5">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead class="bg-indigo-600 text-white sticky top-0">
+                        <tr>
+                            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6">#</th>
+                            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold">Date</th>
+                            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold">Complainant</th>
+                            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold">Status</th>
+                            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold">Offence Type</th>
+                            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold">Description</th>
+                            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold">Predicted IPC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complaints-table-body" class="divide-y divide-gray-200 bg-white">
+                        <!-- Data will be injected here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

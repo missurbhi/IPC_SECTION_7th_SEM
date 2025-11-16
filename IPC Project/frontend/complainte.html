@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Details - Page 1</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary-blue': '#1e40af', // Darker blue for accents
+                        'light-blue': '#3b82f6', // Standard blue
+                    }
+                }
+            }
+        }
+
+        // --- CORE JAVASCRIPT LOGIC ---
+
+        // Helper function to get trimmed value from an input field
+        const val = (id) => document.getElementById(id).value.trim();
+
+        function showMessage(message, isError = false) {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.textContent = message;
+            // Reset classes
+            msgBox.classList.remove('hidden', 'bg-red-100', 'bg-green-100', 'text-red-700', 'text-green-700');
+            
+            if (isError) {
+                msgBox.classList.add('bg-red-100', 'text-red-700');
+            } else {
+                msgBox.classList.add('bg-green-100', 'text-green-700');
+            }
+        }
+
+        /**
+         * Saves the form data to localStorage and redirects to the next page.
+         */
+        function saveDataAndRedirect() {
+            // 1. Get data from form fields
+            const dataP1 = {
+                fullName: val('fullName'),
+                relativeName: val('relativeName'),
+                address: val('address'),
+                mobileNumber: val('mobileNumber'),
+                email: val('email')
+            };
+
+            // 2. Simple validation for required fields
+            if (!dataP1.fullName || !dataP1.relativeName || !dataP1.address || !dataP1.mobileNumber) {
+                showMessage('Please fill in ALL required fields (*).', true);
+                return;
+            }
+
+            // 3. Save data to localStorage - KEY: 'complaintData_Page1'
+            try {
+                localStorage.setItem('complaintData_Page1', JSON.stringify(dataP1));
+                console.log('Page 1 Data successfully saved to localStorage:', dataP1);
+
+                // 4. Navigate to the next page
+                window.location.href = 'incidentpage.html';
+            } catch (e) {
+                console.error('Error saving data to localStorage:', e);
+                showMessage('An error occurred while saving data. Check console for details.', true);
+            }
+        }
+
+        /**
+         * Loads existing data from localStorage on page load to pre-fill fields.
+         */
+        function loadData() {
+            const dataP1 = JSON.parse(localStorage.getItem('complaintData_Page1') || '{}');
+            document.getElementById('fullName').value = dataP1.fullName || '';
+            document.getElementById('relativeName').value = dataP1.relativeName || '';
+            document.getElementById('address').value = dataP1.address || '';
+            document.getElementById('mobileNumber').value = dataP1.mobileNumber || '';
+            document.getElementById('email').value = dataP1.email || '';
+        }
+
+        window.onload = loadData;
+    </script>
+</head>
+<body class="flex flex-col min-h-screen" >
+  <nav class="bg-indigo-800 text-white p-4 shadow-xl sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center" >
+            <a href="home.html" class="text-3xl font-extrabold rounded-xl px-3 py-1 tracking-wider transition-colors duration-300 transform hover:scale-105">FIR Online</a>
+            <div class="md:hidden">
+                <button id="menu-button" class="text-white p-2 focus:outline-none rounded-lg hover:bg-indigo-700 transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Desktop/Mobile Menu -->
+            <div id="nav-menu" class="hidden md:flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0 mt-4 md:mt-0 absolute md:relative top-full left-0 w-full md:w-auto bg-indigo-800 md:bg-transparent p-4 md:p-0 shadow-lg md:shadow-none">
+                <a href="home.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">Home</a>
+                <a href="about.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">About</a>
+                <a href="contact.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">Contact</a>
+                <a href="login.html" class="px-4 py-2 rounded-xl text-lg font-medium bg-indigo-600 hover:bg-indigo-500 transition-colors duration-300">Login</a>
+                <a href="usersignup.html" class="px-4 py-2 rounded-xl text-lg font-medium border border-white hover:bg-white hover:text-indigo-800 transition-colors duration-300">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+
+<!-- Main Content Wrapper for Centering and Responsiveness -->
+    <main class="flex-grow flex justify-center items-start py-10">
+        
+        <!-- Form Container -->
+        <div class="w-full max-w-lg mx-4 sm:mx-0 bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-primary-blue">
+            <h1 class="text-3xl font-extrabold text-primary-blue mb-6 text-center border-b-2 border-light-blue pb-3">
+                Page 1 — Complaint Details
+            </h1>
+            
+            <!-- Message Box for Feedback/Errors -->
+            <div id="messageBox" class="hidden p-3 mb-4 rounded-lg text-sm font-medium transition duration-300 border"></div>
+
+            <form id="complaintForm1">
+                
+                <!-- Full Name -->
+                <div class="mb-5">
+                    <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
+                        Full Name <span class="text-red-600 font-bold">*</span>
+                    </label>
+                    <input type="text" id="fullName" name="fullName" required 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm"
+                            placeholder="Enter your full legal name">
+                </div>
+
+                <!-- Father’s / Husband’s Name -->
+                <div class="mb-5">
+                    <label for="relativeName" class="block text-sm font-medium text-gray-700 mb-1">
+                        Father’s / Husband’s Name <span class="text-red-600 font-bold">*</span>
+                    </label>
+                    <input type="text" id="relativeName" name="relativeName" required 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm"
+                            placeholder="Enter father's or husband's name">
+                </div>
+
+                <!-- Residential Address -->
+                <div class="mb-5">
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">
+                        Residential Address <span class="text-red-600 font-bold">*</span>
+                    </label>
+                    <input type="text" id="address" name="address" required 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm"
+                            placeholder="Street, City, State, Zip Code">
+                </div>
+
+                <!-- Mobile Number -->
+                <div class="mb-5">
+                    <label for="mobileNumber" class="block text-sm font-medium text-gray-700 mb-1">
+                        Mobile Number <span class="text-red-600 font-bold">*</span>
+                    </label>
+                    <input type="tel" id="mobileNumber" name="mobileNumber" required 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm"
+                            placeholder="(123) 456-7890">
+                </div>
+
+                <!-- Email Address (Optional) -->
+                <div class="mb-6">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                        Email Address (Optional)
+                    </label>
+                    <input type="email" id="email" name="email" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm"
+                            placeholder="you@example.com">
+                </div>
+
+                <!-- Next Page Button -->
+                <div class="flex justify-end">
+                    <button type="button" 
+                            class="next-button px-6 py-3 bg-primary-blue text-white font-semibold rounded-full shadow-lg hover:bg-light-blue transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-light-blue focus:ring-opacity-50" 
+                            onclick="saveDataAndRedirect()">
+                        Next Page &rarr;
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+     <!-- Footer (Consistent with other pages) -->
+    <footer class="bg-indigo-900 text-white p-6 text-center mt-auto shadow-inner">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-center md:space-x-8 mb-4">
+                <a href="about.html" class="text-sm hover:text-indigo-300 transition-colors duration-300">About Us</a>
+                <a href="contact.html" class="text-sm hover:text-indigo-300 transition-colors duration-300">Support</a>
+                <a href="#" class="text-sm hover:text-indigo-300 transition-colors duration-300">Privacy Policy</a>
+            </div>
+            <p class="text-xs opacity-80">© 2024 FIR Online. All rights reserved. Empowering citizens through digital governance.</p>
+        </div>
+    </footer>
+
+
+</body>
+</html>

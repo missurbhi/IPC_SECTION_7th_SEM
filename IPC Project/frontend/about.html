@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - FIR Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Light gray background */
+        }
+        
+        /* Keyframes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Base Animation Classes & Initial State Fix */
+        .animate-fade-in {
+            animation: fadeIn 1.0s ease-out forwards;
+            opacity: 0; /* Ensure element is hidden before animation starts */
+        }
+        .animate-scale-in {
+            animation: scaleIn 1.0s ease-out forwards;
+            opacity: 0; /* Ensure element is hidden before animation starts */
+        }
+
+        /* Utility classes for delayed animations */
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-700 { animation-delay: 0.7s; }
+        .delay-1000 { animation-delay: 1.0s; }
+        .delay-1300 { animation-delay: 1.3s; }
+
+        /* Custom transition for cards (existing styles) */
+        .feature-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(49, 46, 129, 0.1), 0 10px 10px -5px rgba(49, 46, 129, 0.04);
+        }
+
+        /* Style for the FAQ accordion indicator (existing styles) */
+        .accordion-indicator {
+            transition: transform 0.3s ease-in-out;
+        }
+        .accordion-item[aria-expanded="true"] .accordion-indicator {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="bg-indigo-800 text-white p-4 shadow-xl sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="home.html" class="text-3xl font-extrabold rounded-xl px-3 py-1 tracking-wider transition-colors duration-300 transform hover:scale-105">FIR Online</a>
+            <div class="md:hidden">
+                <button id="menu-button" class="text-white p-2 focus:outline-none rounded-lg hover:bg-indigo-700 transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Desktop/Mobile Menu -->
+            <div id="nav-menu" class="hidden md:flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0 mt-4 md:mt-0 absolute md:relative top-full left-0 w-full md:w-auto bg-indigo-800 md:bg-transparent p-4 md:p-0 shadow-lg md:shadow-none">
+                <a href="home.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">Home</a>
+                <a href="about.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">About</a>
+                <a href="contact.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">Contact</a>
+                <a href="login.html" class="px-4 py-2 rounded-xl text-lg font-medium bg-indigo-600 hover:bg-indigo-500 transition-colors duration-300">Login</a>
+                <a href="usersignup.html" class="px-4 py-2 rounded-xl text-lg font-medium border border-white hover:bg-white hover:text-indigo-800 transition-colors duration-300">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow container mx-auto p-4 md:p-8">
+        <div class="max-w-6xl mx-auto bg-white p-6 md:p-12 rounded-xl shadow-2xl">
+            <!-- Animation applied to H1 -->
+            <h1 class="text-4xl font-extrabold text-center mb-4 text-indigo-800 animate-fade-in">Our Commitment to Digital Safety</h1>
+            <!-- Animation applied to P with delay -->
+            <p class="text-xl text-center text-gray-600 mb-12 max-w-3xl mx-auto animate-fade-in delay-300">FIR Online is transforming the way citizens interact with law enforcement, making the first step towards justice simple, secure, and accessible from any device.</p>
+            
+            <!-- Vision & Image Section (Sequential delays applied within) -->
+            <div class="grid md:grid-cols-2 gap-12 items-center mb-16">
+                <div class="order-2 md:order-1 animate-fade-in delay-500">
+                    <h2 class="text-3xl font-bold text-indigo-700 mb-4">Bridging the Gap with Technology</h2>
+                    <p class="text-gray-700 leading-relaxed mb-4">Our vision is a safe society where reporting an incident is frictionless. We leverage modern web technology to eliminate bureaucratic hurdles, providing a platform built on integrity, user experience, and prompt action.</p>
+                    <div class="p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-500">
+                        <p class="font-semibold text-indigo-800">"Security, speed, and transparency are not just features; they are the foundation of public trust. FIR Online delivers all three."</p>
+                    </div>
+                </div>
+                
+                <!-- ATTRACTIVE DIGITAL MOCKUP (Scaled in with delay) -->
+                <div class="flex justify-center order-1 md:order-2 w-full h-80 relative animate-scale-in delay-700">
+                    <div class="relative p-6 bg-white rounded-2xl shadow-[0_20px_50px_rgba(79,70,229,0.3)] w-full max-w-xs sm:max-w-md transition-transform duration-500 hover:scale-[1.03] cursor-pointer">
+                        
+                        <!-- Desktop/Tablet Screen Mockup -->
+                        <div class="bg-indigo-100 rounded-xl p-4 border border-indigo-300 h-full relative z-10">
+                            <!-- Header Bar -->
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-xs font-semibold text-indigo-600 uppercase">Secure Portal</span>
+                                <div class="flex space-x-1">
+                                    <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                </div>
+                            </div>
+                            <!-- Mock Content: Timeline/Status -->
+                            <div class="space-y-3 mt-8">
+                                <div class="h-3 bg-indigo-400 w-3/4 rounded-full"></div>
+                                <div class="h-3 bg-indigo-300 w-full rounded-full"></div>
+                                <div class="h-3 bg-indigo-200 w-5/6 rounded-full"></div>
+                            </div>
+                            <!-- Mock Button -->
+                            <div class="mt-6 pt-4 flex justify-end">
+                                <div class="w-1/3 h-8 bg-indigo-500 rounded-lg shadow-md"></div>
+                            </div>
+                        </div>
+
+                        <!-- Mobile View Mockup (Layered on top/bottom) -->
+                        <div class="absolute -bottom-4 -left-4 md:-bottom-8 md:-left-8 bg-gray-900 p-2 rounded-2xl shadow-xl border-2 border-indigo-400 z-20">
+                            <div class="w-20 h-32 md:w-28 md:h-44 bg-gray-800 rounded-xl flex flex-col justify-end p-2">
+                                <div class="h-1.5 bg-red-500 w-1/3 rounded-full mb-1"></div>
+                                <div class="h-1.5 bg-green-500 w-2/3 rounded-full mb-1"></div>
+                                <div class="h-1.5 bg-blue-500 w-1/2 rounded-full"></div>
+                            </div>
+                            <div class="absolute top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gray-600 rounded-full"></div>
+                        </div>
+
+                    </div>
+                </div>
+                
+            </div>
+
+            <!-- Key Metrics / System Commitments Section (Faded in with delay) -->
+            <div class="bg-indigo-700 text-white rounded-2xl p-8 mb-16 shadow-2xl animate-fade-in delay-700">
+                <h2 class="text-3xl font-bold text-center mb-8">Our System Commitments</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div class="p-4 rounded-xl bg-indigo-600/70">
+                        <p class="text-4xl font-extrabold mb-1">99.9%</p>
+                        <p class="text-sm uppercase tracking-wider opacity-90">Uptime Reliability</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-indigo-600/70">
+                        <p class="text-4xl font-extrabold mb-1">24/7</p>
+                        <p class="text-sm uppercase tracking-wider opacity-90">System Availability</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-indigo-600/70">
+                        <p class="text-4xl font-extrabold mb-1">5 Mins</p>
+                        <p class="text-sm uppercase tracking-wider opacity-90">Average Filing Time</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Our Team / Founding Story Section (Faded in with delay) -->
+            <div class="mb-16 animate-fade-in delay-1000">
+                <h2 class="text-3xl font-bold text-center text-indigo-700 mb-8">The Story Behind FIR Online</h2>
+                <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <img src="https://placehold.co/150x150/6366F1/FFFFFF?text=Founders" alt="Image of the founders" class="rounded-full w-32 h-32 object-cover shadow-lg mx-auto md:mx-0 flex-shrink-0">
+                    <div>
+                        <p class="text-gray-700 leading-relaxed mb-4">FIR Online was born out of a simple observation: the process of filing an FIR was often intimidating, time-consuming, and lacked transparency. In 2023, a small group of civic-minded technologists decided to solve this problem using their expertise in secure web platforms.</p>
+                        <p class="text-gray-700 leading-relaxed">Our goal was to create a system that respected the victim's privacy while ensuring immediate and accountable transmission of reports to law enforcement. We believe that by simplifying the first step, we significantly improve the chance of justice being served quickly.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive FAQ Section (Accordion) (Faded in with delay) -->
+            <div class="mt-12 animate-fade-in delay-1300">
+                <h2 class="text-3xl font-bold text-center text-indigo-700 mb-8">Frequently Asked Questions</h2>
+                <div id="faq-accordion" class="space-y-3">
+                    <!-- FAQ Item 1 -->
+                    <div class="rounded-lg shadow-md overflow-hidden bg-gray-50">
+                        <button class="accordion-item w-full text-left p-4 font-semibold text-lg text-indigo-800 flex justify-between items-center transition-colors duration-200 hover:bg-indigo-100 focus:outline-none" aria-expanded="false" aria-controls="content-1">
+                            Is the online FIR legally binding?
+                            <svg class="accordion-indicator w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="content-1" class="accordion-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out p-0">
+                            <p class="p-4 pt-0 text-gray-700 border-t border-indigo-200">Yes, the First Information Report filed through our platform is officially forwarded to the concerned police station and treated as a legally valid complaint. You will receive an acknowledgment receipt and reference number for official tracking.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Item 2 -->
+                    <div class="rounded-lg shadow-md overflow-hidden bg-gray-50">
+                        <button class="accordion-item w-full text-left p-4 font-semibold text-lg text-indigo-800 flex justify-between items-center transition-colors duration-200 hover:bg-indigo-100 focus:outline-none" aria-expanded="false" aria-controls="content-2">
+                            How long does it take for a report to be reviewed?
+                            <svg class="accordion-indicator w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="content-2" class="accordion-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out p-0">
+                            <p class="p-4 pt-0 text-gray-700 border-t border-indigo-200">Reports are processed instantly and electronically routed to the station head. While formal review times vary by jurisdiction, our digital delivery ensures there is zero delay from the time you press 'submit' to the police receiving the data.</p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 3 -->
+                    <div class="rounded-lg shadow-md overflow-hidden bg-gray-50">
+                        <button class="accordion-item w-full text-left p-4 font-semibold text-lg text-indigo-800 flex justify-between items-center transition-colors duration-200 hover:bg-indigo-100 focus:outline-none" aria-expanded="false" aria-controls="content-3">
+                            Can I file an Anonymous Tip through this platform?
+                            <svg class="accordion-indicator w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="content-3" class="accordion-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out p-0">
+                            <p class="p-4 pt-0 text-gray-700 border-t border-indigo-200">Yes! We provide a dedicated "Anonymous Tip" section (accessible via the navigation bar) which allows you to submit crucial information without providing any personally identifiable details, ensuring complete confidentiality.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing How It Works Section (Kept for consistency) -->
+            <div class="mt-12 text-center border-t border-gray-200 pt-8 animate-fade-in delay-1300">
+                <h2 class="text-3xl font-semibold text-indigo-700 mb-6">The Filing Process</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div class="p-6 bg-indigo-50 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold text-indigo-600 mb-2">1. Fill the Form</h3>
+                        <p class="text-gray-600">Provide all necessary details about the incident in our secure, easy-to-use digital form.</p>
+                    </div>
+                    <div class="p-6 bg-indigo-50 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold text-indigo-600 mb-2">2. Review & Submit</h3>
+                        <p class="text-gray-600">Review your complaint and submit it electronically to the concerned police station.</p>
+                    </div>
+                    <div class="p-6 bg-indigo-50 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="text-xl font-bold text-indigo-600 mb-2">3. Track Your Report</h3>
+                        <p class="text-gray-600">Receive a reference number to track the status of your FIR and get real-time updates via our portal.</p>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <footer class="bg-indigo-700 text-white p-4 text-center mt-auto">
+        <p class="text-sm">© 2024 FIR Online. All rights reserved.</p>
+    </footer>
+
+</body>
+<script>
+    // Mobile Menu Toggle
+    const menuButton = document.getElementById('menu-button');
+    const navMenu = document.getElementById('nav-menu');
+    menuButton.addEventListener('click', () => {
+        // Toggle the 'hidden' class and ensure proper layout classes are applied/removed
+        if (navMenu.classList.contains('hidden')) {
+            navMenu.classList.remove('hidden');
+            navMenu.classList.add('flex', 'flex-col', 'absolute', 'top-full', 'left-0', 'w-full', 'bg-indigo-700', 'shadow-xl', 'p-4');
+        } else {
+            navMenu.classList.add('hidden');
+            navMenu.classList.remove('flex', 'flex-col', 'absolute', 'top-full', 'left-0', 'w-full', 'bg-indigo-700', 'shadow-xl', 'p-4');
+        }
+    });
+
+    // Interactive FAQ Accordion
+    document.addEventListener('DOMContentLoaded', () => {
+        const accordion = document.getElementById('faq-accordion');
+        if (accordion) {
+            accordion.querySelectorAll('.accordion-item').forEach(button => {
+                button.addEventListener('click', () => {
+                    const contentId = button.getAttribute('aria-controls');
+                    const content = document.getElementById(contentId);
+                    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+                    // Close all others and open current
+                    accordion.querySelectorAll('.accordion-item').forEach(otherButton => {
+                        const otherContentId = otherButton.getAttribute('aria-controls');
+                        const otherContent = document.getElementById(otherContentId);
+                        
+                        // Close if another button is open and it's not the current one
+                        if (otherButton !== button && otherButton.getAttribute('aria-expanded') === 'true') {
+                            otherButton.setAttribute('aria-expanded', 'false');
+                            otherContent.style.maxHeight = null;
+                            otherContent.style.padding = '0';
+                        }
+                    });
+
+                    if (!isExpanded) {
+                        // Open current
+                        button.setAttribute('aria-expanded', 'true');
+                        // Use scrollHeight to calculate max-height dynamically
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        content.style.paddingTop = '1rem';
+                        content.style.paddingBottom = '1rem';
+                    } else {
+                        // Close current
+                        button.setAttribute('aria-expanded', 'false');
+                        content.style.maxHeight = null;
+                        content.style.padding = '0';
+                    }
+                });
+            });
+        }
+    });
+</script>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>File Your Complaint (FIR) - Incident Details</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+	<style>
+		body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+		.card { box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 1rem; background: white; }
+        /* Custom colors for Tailwind configuration */
+        :root {
+            --color-primary-blue: #1e40af;
+            --color-light-blue: #3b82f6;
+        }
+	</style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-blue': 'var(--color-primary-blue)', 
+                        'light-blue': 'var(--color-light-blue)', 
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+     <body class="flex flex-col min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="bg-indigo-800 text-white p-4 shadow-xl sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="home.html" class="text-3xl font-extrabold rounded-xl px-3 py-1 tracking-wider transition-colors duration-300 transform hover:scale-105">FIR Online</a>
+            <div class="md:hidden">
+                <button id="menu-button" class="text-white p-2 focus:outline-none rounded-lg hover:bg-indigo-700 transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Desktop/Mobile Menu -->
+            <div id="nav-menu" class="hidden md:flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0 mt-4 md:mt-0 absolute md:relative top-full left-0 w-full md:w-auto bg-indigo-800 md:bg-transparent p-4 md:p-0 shadow-lg md:shadow-none">
+                <a href="home.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">Home</a>
+                <a href="about.html" class="px-4 py-2 rounded-xl text-lg font-medium hover:bg-indigo-700 transition-colors duration-300">About</a>
+                <a href="contact.html" class="px-4 py-2 rounded-xl text-lg font-medium bg-indigo-700 transition-colors duration-300">Contact</a>
+                <a href="login.html" class="px-4 py-2 rounded-xl text-lg font-medium bg-indigo-600 hover:bg-indigo-500 transition-colors duration-300">Login</a>
+                <a href="usersignup.html" class="px-4 py-2 rounded-xl text-lg font-medium border border-white hover:bg-white hover:text-indigo-800 transition-colors duration-300">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Wrapper for Centering and Responsiveness -->
+    <!-- The flex-grow and justify-center classes ensure the content block is centered in the viewport -->
+    <main class="flex-grow flex justify-center items-start py-10">
+        
+        <!-- Form Container -->
+        <!-- max-w-2xl sets the max width, mx-auto centers it horizontally -->
+        <div class="card max-w-2xl w-full mx-4 sm:mx-8 md:mx-auto p-6 sm:p-8 bg-white rounded-xl shadow-2xl border border-primary-blue">
+            
+            <h1 class="text-3xl font-extrabold text-primary-blue mb-6 text-center border-b-2 border-light-blue pb-3">
+                Page 2 — Incident Details
+            </h1>
+
+            <!-- Message Box for Feedback/Errors (Crucial for showMessage() to work) -->
+            <div id="messageBox" class="hidden p-3 mb-4 rounded-lg text-sm font-medium transition duration-300 border"></div>
+
+            <form id="firForm" class="space-y-5">
+
+                <div class="mb-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Date of Incident -->
+                    <div>
+                        <label for="incidentDate" class="block text-sm font-medium text-gray-700 mb-1">
+                            Date of Incident <span class="text-red-600 font-bold">*</span>
+                        </label>
+                        <input type="date" id="incidentDate" name="incidentDate" required 
+                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm">
+                    </div>
+
+                    <!-- Time of Incident -->
+                    <div>
+                        <label for="incidentTime" class="block text-sm font-medium text-gray-700 mb-1">
+                            Time of Incident <span class="text-red-600 font-bold">*</span>
+                        </label>
+                        <input type="time" id="incidentTime" name="incidentTime" required 
+                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm">
+                    </div>
+                </div>
+                
+                <!-- Place of Incident -->
+                <div class="mb-5">
+                    <label for="incidentPlace" class="block text-sm font-medium text-gray-700 mb-1">
+                        Place of Incident <span class="text-red-600 font-bold">*</span>
+                    </label>
+                    <input type="text" id="incidentPlace" name="incidentPlace" required 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm"
+                            placeholder="E.g., 123 Main Street, near City Park">
+                </div>
+
+                <!-- Offence Type -->
+                <div>
+                    <label for="offence_type" class="block text-sm font-medium text-gray-700 mb-1">Offence Type <span class="text-red-600 font-bold">*</span></label>
+                    <select id="offence_type" required class="w-full mt-1 border border-gray-300 rounded-lg px-3 py-3 focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm">
+                        <option value="">Select Offence</option>
+                        <option value="Theft">Theft (Larceny, Burglary)</option>
+                        <option value="Assault">Assault (Physical Harm, Threat)</option>
+                        <option value="Fraud">Fraud (Cheating, Impersonation)</option>
+                        <option value="Harassment">Harassment (Public, Digital)</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Incident Description <span class="text-red-600 font-bold">*</span></label>
+                    <textarea id="description" rows="5" class="w-full mt-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-light-blue focus:border-light-blue transition duration-200 shadow-sm" placeholder="Describe the incident in detail, including what happened, who was involved, and any damages..." required></textarea>
+                </div>
+
+                <!-- Predict IPC Button -->
+                <div class="text-center pt-2">
+                    <button type="button" id="predictBtn" class="bg-primary-blue hover:bg-light-blue text-white font-semibold px-6 py-3 rounded-full shadow-lg transition duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-light-blue focus:ring-opacity-50">
+                        Predict IPC Section
+                    </button>
+                </div>
+            </form>
+
+            <!-- Prediction Result -->
+            <div id="predictionResult" class="hidden mt-6 p-4 rounded-xl bg-blue-50 border border-blue-200 shadow-inner">
+                <h2 class="text-lg font-bold text-gray-800 mb-2 border-b border-blue-100 pb-1">Predicted Legal Section</h2>
+                <p id="ipcSection" class="text-blue-700 font-bold text-xl mb-1"></p>
+                <p id="ipcJustification" class="text-gray-600 text-sm"></p>
+                <div id="citationSources" class="mt-3 text-xs text-gray-500"></div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="hidden text-center mt-6">
+                <div class="animate-spin inline-block w-8 h-8 border-4 border-primary-blue border-t-transparent rounded-full"></div>
+                <p class="mt-2 text-gray-500">Analyzing incident and searching IPC code...</p>
+            </div>
+                
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between mt-8 border-t pt-4">
+                <button type="button" 
+                        class="px-6 py-3 bg-gray-500 text-white font-semibold rounded-full shadow-lg hover:bg-gray-600 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-opacity-50" 
+                        onclick="saveAndRedirect('complainte.html')">
+                    &larr; Back
+                </button>
+
+                <button type="button" 
+                        class="px-6 py-3 bg-primary-blue text-white font-semibold rounded-full shadow-lg hover:bg-light-blue transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-light-blue focus:ring-opacity-50" 
+                        onclick="saveAndRedirect('Witnesspage.html')">
+                    Next Page &rarr;
+                </button>
+            </div>
+                
+        </div>
+    </main>
+
+    <!-- Footer (Consistent with other pages) -->
+    <footer class="bg-indigo-900 text-white p-6 text-center mt-auto shadow-inner">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-center md:space-x-8 mb-4">
+                <a href="about.html" class="text-sm hover:text-indigo-300 transition-colors duration-300">About Us</a>
+                <a href="contact.html" class="text-sm hover:text-indigo-300 transition-colors duration-300">Support</a>
+                <a href="#" class="text-sm hover:text-indigo-300 transition-colors duration-300">Privacy Policy</a>
+            </div>
+            <p class="text-xs opacity-80">© 2024 FIR Online. All rights reserved. Empowering citizens through digital governance.</p>
+        </div>
+    </footer>
+
+	<script>
+		const apiUrl = "http://127.0.0.1:8000/predict_ipc";
+        
+        // --- HELPER FUNCTIONS ---
+
+        // Helper to get element value (handles null checks gracefully)
+        const val = (id) => document.getElementById(id)?.value?.trim() || '';
+        // Helper to set element value
+        const setVal = (id, value) => { 
+            const el = document.getElementById(id);
+            if (el) el.value = value || ''; 
+        };
+        // Helper to get element text content (handles null checks gracefully)
+        const textContent = (id) => document.getElementById(id)?.textContent?.trim() || '';
+        // Helper to set element text content
+        const setTextContent = (id, value) => { 
+            const el = document.getElementById(id);
+            if (el) el.textContent = value || ''; 
+        };
+        
+        // Function to display messages in the custom box (Replacing alert)
+        function showMessage(message, isError = false) {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.textContent = message;
+            msgBox.classList.remove('hidden', 'bg-red-100', 'bg-green-100', 'text-red-700', 'text-green-700', 'border-red-400', 'border-green-400');
+            
+            if (isError) {
+                msgBox.classList.add('bg-red-100', 'text-red-700', 'border-red-400');
+            } else {
+                msgBox.classList.add('bg-green-100', 'text-green-700', 'border-green-400');
+            }
+            msgBox.classList.remove('hidden');
+        }
+
+        // --- LOCAL STORAGE FUNCTIONS ---
+
+        /**
+         * Saves all incident and prediction data to localStorage.
+         */
+        function savePageData() {
+            const dataP2 = {
+                incidentDate: val('incidentDate'),
+                incidentTime: val('incidentTime'),
+                incidentPlace: val('incidentPlace'),
+                offence_type: val('offence_type'),
+                description: val('description'),
+                // Capture predicted data
+                ipcSection: textContent('ipcSection'),
+                ipcJustification: textContent('ipcJustification')
+            };
+            try {
+                localStorage.setItem('complaintData_Page2', JSON.stringify(dataP2));
+                console.log('Page 2 Data saved for review.');
+                return true;
+            } catch (e) {
+                console.error('Error saving data to localStorage:', e);
+                showMessage('Error saving data for review. Check console for details.', true);
+                return false;
+            }
+        }
+
+        /**
+         * Loads existing data from localStorage on page load.
+         */
+        function loadPageData() {
+            const dataP2 = JSON.parse(localStorage.getItem('complaintData_Page2') || '{}');
+            
+            setVal('incidentDate', dataP2.incidentDate);
+            setVal('incidentTime', dataP2.incidentTime);
+            setVal('incidentPlace', dataP2.incidentPlace);
+            setVal('offence_type', dataP2.offence_type);
+            setVal('description', dataP2.description);
+            
+            // Load predicted data if it exists
+            if (dataP2.ipcSection) {
+                document.getElementById("predictionResult").classList.remove("hidden");
+                setTextContent('ipcSection', dataP2.ipcSection);
+                setTextContent('ipcJustification', dataP2.ipcJustification);
+            }
+            
+            // Provide feedback that data was loaded
+            if (Object.keys(dataP2).some(key => dataP2[key])) {
+                 showMessage("Previous incident data loaded successfully.", false);
+            }
+        }
+        
+        /**
+         * Saves data and redirects to the target page. Used by navigation buttons.
+         */
+        function saveAndRedirect(targetPage) {
+            // Check if form fields are valid before saving and redirecting (optional quick check)
+            if (!val('incidentDate') || !val('incidentPlace') || !val('description')) {
+                // We allow navigation even if incomplete, but let's encourage saving.
+            }
+
+            if (savePageData()) {
+                window.location.href = targetPage;
+            }
+        }
+
+        // --- MAIN LOGIC ---
+
+		document.getElementById("predictBtn").addEventListener("click", async () => {
+			const description = val("description");
+			const offence_type = val("offence_type");
+
+			if (!description || !offence_type) {
+				showMessage("Please enter both Offence Type and Incident Description.", true);
+				return;
+			}
+
+			// Show loading spinner
+			document.getElementById("loadingSpinner").classList.remove("hidden");
+			document.getElementById("predictionResult").classList.add("hidden");
+            document.getElementById("messageBox").classList.add("hidden"); // Clear message
+
+			try {
+				const response = await fetch(apiUrl, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ description, offence_type })
+				});
+
+				if (!response.ok) {
+					throw new Error(`HTTP error ${response.status}`);
+				}
+
+				const data = await response.json();
+
+				// Hide loading
+				document.getElementById("loadingSpinner").classList.add("hidden");
+
+				if (data.error) {
+					showMessage("Prediction Error: " + data.error, true);
+					return;
+				}
+
+				// Display result
+				document.getElementById("predictionResult").classList.remove("hidden");
+				setTextContent("ipcSection", data.predicted_ipc || "No IPC section predicted.");
+				setTextContent("ipcJustification", data.justification || "");
+                
+                // --- SAVE PREDICTED DATA ---
+                savePageData();
+                showMessage("IPC prediction complete and data saved for review.", false);
+			} 
+			catch (error) {
+				document.getElementById("loadingSpinner").classList.add("hidden");
+				showMessage("Failed to connect to the server or prediction error: " + error.message, true);
+				console.error("Prediction error:", error);
+			}
+		});
+        
+        // Load data automatically when the page loads
+        window.onload = loadPageData;
+	</script>
+</body>
+</html>

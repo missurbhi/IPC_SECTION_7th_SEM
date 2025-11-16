@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIR Status Tracker</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for professional look and feel */
+        body {
+            background-color: #f7f9fb;
+            color: #1f2937;
+        }
+        /* Custom animation for loading spinner */
+        .loader {
+            border-top-color: #3b82f6;
+            -webkit-animation: spin 1s ease-in-out infinite;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="w-full max-w-2xl bg-white shadow-2xl rounded-xl p-8 md:p-10 border border-gray-100">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-blue-600 mb-2">FIR Status Tracker</h1>
+            <p class="text-gray-500">Enter your unique **FIR ID** below to view the latest status update.</p>
+        </header>
+
+        <!-- Search Form -->
+        <form id="statusForm" class="flex flex-col sm:flex-row gap-4 mb-8">
+            <input 
+                type="text" 
+                id="firIdInput" 
+                placeholder="Enter FIR ID (e.g., a0b1c2d3...)"
+                required
+                class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+            >
+            <button 
+                type="submit" 
+                id="searchButton"
+                class="sm:w-32 p-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:opacity-50"
+            >
+                Search
+            </button>
+        </form>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="hidden text-center py-6">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-10 w-10 mx-auto mb-3"></div>
+            <p class="text-blue-500 font-medium">Fetching status...</p>
+        </div>
+
+        <!-- Result Display Area -->
+        <div id="resultsArea" class="hidden border border-gray-200 rounded-lg p-6 bg-white shadow-inner">
+            <h2 class="text-2xl font-bold mb-4 flex items-center text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                FIR Details
+            </h2>
+
+            <dl class="space-y-3 text-sm">
+                <!-- Status Row (Dynamic Styling) -->
+                <div class="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-gray-50">
+                    <dt class="font-medium text-gray-600">Current Status</dt>
+                    <dd id="displayStatus" class="font-bold text-lg"></dd>
+                </div>
+
+                <!-- Basic Info -->
+                <div class="flex justify-between">
+                    <!-- Updated Label to reflect created_at -->
+                    <dt class="text-gray-500">Date/Time Filed</dt>
+                    <!-- Mapped to 'created_at' from API -->
+                    <dd id="displayDateFiled" class="font-medium text-gray-800"></dd> 
+                </div>
+                
+                <!-- Predicted IPC Section (Shown only for relevant statuses) -->
+                <!-- Mapped to 'predicted_ipc' from API -->
+                <div id="ipcSectionRow" class="hidden border-t pt-3">
+                    <dt class="font-medium text-gray-600 mb-1">Predicted IPC Section</dt>
+                    <dd id="displayIpcSection" class="bg-yellow-100 text-yellow-800 text-sm p-2 rounded-md border border-yellow-300"></dd>
+                </div>
+
+                <!-- Rejection Reason (Shown only for Rejected) -->
+                <div id="rejectionReasonRow" class="hidden border-t pt-3">
+                    <dt class="font-medium text-gray-600 mb-1">Rejection Reason</dt>
+                    <dd id="displayRejectionReason" class="bg-red-100 text-red-800 text-sm p-3 rounded-md border border-red-300 whitespace-pre-wrap"></dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Error Message Area -->
+        <div id="errorArea" class="hidden p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 font-medium">
+            <!-- Error message will be injected here -->
+        </div>
+
+        <footer class="mt-8 text-center text-xs text-gray-400">
+            <p>Data fetched from Flask API on port 8000 connected to MySQL.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Updated API_BASE_URL to reflect the new port (8000) and endpoint.
+        const API_BASE_URL = 'http://127.0.0.1:8000/get_complaint_status/'; 
+
+        // --- DOM Elements ---
+        const statusForm = document.getElementById('statusForm');
+        const firIdInput = document.getElementById('firIdInput');
+        const searchButton = document.getElementById('searchButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const resultsArea = document.getElementById('resultsArea');
+        const errorArea = document.getElementById('errorArea');
+
+        // Dynamic Display Elements
+        const displayStatus = document.getElementById('displayStatus');
+        const displayDateFiled = document.getElementById('displayDateFiled'); // Mapped to data.created_at
+        const displayIpcSection = document.getElementById('displayIpcSection'); // Mapped to data.predicted_ipc
+        const displayRejectionReason = document.getElementById('displayRejectionReason');
+        const ipcSectionRow = document.getElementById('ipcSectionRow');
+        const rejectionReasonRow = document.getElementById('rejectionReasonRow');
+
+
+        /**
+         * Clears previous results, errors, and resets the UI state.
+         */
+        function resetUI() {
+            resultsArea.classList.add('hidden');
+            errorArea.classList.add('hidden');
+            errorArea.innerHTML = '';
+            loadingIndicator.classList.add('hidden');
+            searchButton.disabled = false;
+        }
+
+        /**
+         * Custom fetch wrapper with exponential backoff and retry logic.
+         * @param {string} url - The API URL to fetch.
+         * @param {number} [maxRetries=3] - Maximum number of retries.
+         * @param {number} [delay=1000] - Initial delay in milliseconds.
+         * @returns {Promise<Response>} The final fetch Response object.
+         */
+        async function fetchWithRetry(url, maxRetries = 3, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url);
+                    // Do not retry on 404, 500, or 503 as they indicate specific backend issues
+                    if (response.status < 500 || response.ok) {
+                        return response;
+                    }
+                    // For other temporary network errors, retry
+                    throw new Error(`Server error with status: ${response.status}`);
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        throw new Error(`Failed to connect to API after ${maxRetries} attempts.`);
+                    }
+                    // Exponential backoff wait
+                    await new Promise(resolve => setTimeout(resolve, delay * (2 ** i)));
+                }
+            }
+        }
+
+        /**
+         * Renders the fetched data into the results area.
+         * @param {object} data - The FIR data object from the API.
+         */
+        function renderResults(data) {
+            const status = data.status;
+
+            // 1. Reset dynamic fields visibility
+            ipcSectionRow.classList.add('hidden');
+            rejectionReasonRow.classList.add('hidden');
+
+            // 2. Set basic fields
+            // data.created_at is used for the 'Date Filed' display
+            displayDateFiled.textContent = data.created_at || 'N/A';
+            displayStatus.textContent = status;
+
+            // 3. Update Status Card styling and content
+            const statusCard = displayStatus.parentElement;
+            // Remove previous status classes
+            statusCard.className = statusCard.className.replace(/\b(text|bg)-[a-z]+-[0-9]+\s/g, '').trim();
+            statusCard.classList.remove('border-2', 'border-current'); 
+
+            let textColor = 'text-gray-800';
+            let bgColor = 'bg-gray-100';
+
+            switch (status) {
+                case 'Accepted':
+                case 'In Progress': // Assuming In Progress also has a predicted IPC
+                    textColor = 'text-green-700';
+                    bgColor = 'bg-green-100';
+                    ipcSectionRow.classList.remove('hidden');
+                    break;
+                case 'Rejected':
+                    textColor = 'text-red-700';
+                    bgColor = 'bg-red-100';
+                    rejectionReasonRow.classList.remove('hidden');
+                    break;
+                case 'Pending':
+                    textColor = 'text-yellow-700';
+                    bgColor = 'bg-yellow-100';
+                    break;
+                default:
+                    // Use default colors for unknown status
+            }
+
+            // Apply new classes
+            statusCard.classList.add(bgColor, 'border-2', 'border-current', textColor);
+            displayStatus.classList.add(textColor);
+
+            // 4. Set dynamic content fields
+            if (!rejectionReasonRow.classList.contains('hidden')) {
+                displayRejectionReason.textContent = data.rejection_reason || 'No reason provided.';
+            }
+            if (!ipcSectionRow.classList.contains('hidden')) {
+                // data.predicted_ipc is used for the IPC display
+                displayIpcSection.textContent = data.predicted_ipc || 'Section pending review.';
+            }
+
+            // 5. Show the results area
+            resultsArea.classList.remove('hidden');
+        }
+
+        /**
+         * Main function to handle the form submission and API call.
+         * @param {Event} e - The form submission event.
+         */
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            resetUI();
+
+            const firId = firIdInput.value.trim();
+            if (!firId) return;
+
+            // Set UI state to loading
+            searchButton.disabled = true;
+            loadingIndicator.classList.remove('hidden');
+
+            const url = API_BASE_URL + firId; 
+
+            try {
+                const response = await fetchWithRetry(url);
+                
+                let errorText = '';
+                
+                if (response.status === 404) {
+                    errorText = `Error 404: FIR ID "${firId}" was not found. Please verify the ID.`;
+                } else if (response.status === 503) {
+                     errorText = `Error 503: The database is currently unavailable. Please check your MySQL server status and connection credentials.`;
+                } else if (response.status === 500) {
+                     // Check if response body has a specific error message
+                     // We try to parse JSON, but if it fails, we fall back to a generic message
+                     try {
+                         const errorJson = await response.json();
+                         errorText = `Error 500: ${errorJson.error || 'Internal server error during data retrieval.'} Check the backend console for MySQL query issues.`;
+                     } catch (e) {
+                         errorText = `Error 500: Internal server error. Check the backend console for unexpected response.`;
+                     }
+                } else if (!response.ok) {
+                    // Handle other HTTP errors
+                    errorText = `API returned status ${response.status}. Check if the Python server is running on port 8000.`;
+                }
+
+                if (errorText) {
+                    errorArea.textContent = errorText;
+                    errorArea.classList.remove('hidden');
+                    return;
+                }
+
+                const data = await response.json();
+                renderResults(data);
+
+            } catch (error) {
+                // Handle network errors (e.g., API is completely down)
+                errorArea.textContent = `A communication error occurred: ${error.message}. Ensure the Flask API is running on ${API_BASE_URL.replace('/get_complaint_status/', '')}`;
+                errorArea.classList.remove('hidden');
+                console.error('Fetch Error:', error);
+            } finally {
+                // Reset loading state regardless of success or failure
+                loadingIndicator.classList.add('hidden');
+                searchButton.disabled = false;
+            }
+        }
+
+        // Attach the submit handler
+        statusForm.addEventListener('submit', handleFormSubmit);
+    </script>
+</body>
+</html>

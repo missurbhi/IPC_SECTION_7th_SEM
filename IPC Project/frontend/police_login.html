@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Login | FIR Management</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Apply the Inter font and set a nice background */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        /* Custom scrollbar for aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a8b9c9;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-md">
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Police Portal Access</h1>
+            <p class="text-gray-500">FIR Management System</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
+            <h2 class="text-2xl font-semibold mb-6 text-center text-indigo-700">Officer Login</h2>
+
+            <form id="loginForm">
+                
+                <div class="mb-5">
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <input type="text" id="username" name="username" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out placeholder-gray-400"
+                           placeholder="Enter your police ID">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" name="password" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out placeholder-gray-400"
+                           placeholder="••••••••">
+                </div>
+
+                <!-- Message Box for Feedback -->
+                <div id="messageBox" class="p-3 rounded-lg text-sm mb-4 hidden" role="alert"></div>
+
+                <button type="submit" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg transition duration-300 ease-in-out shadow-lg transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+                    Log In
+                </button>
+            </form>
+
+            <p class="text-center text-sm text-gray-500 mt-6">
+                Need to register? <a href="police_register.html" class="text-indigo-600 hover:text-indigo-800 font-medium">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('loginForm');
+            const messageBox = document.getElementById('messageBox');
+            const API_URL = 'http://127.0.0.1:8000/police_login';
+
+            /**
+             * Utility function to display messages to the user.
+             * @param {string} message - The text to display.
+             * @param {string} type - 'success' or 'error' for styling.
+             */
+            function showMessage(message, type) {
+                messageBox.textContent = message;
+                messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+                
+                if (type === 'error') {
+                    messageBox.classList.add('bg-red-100', 'text-red-800');
+                } else if (type === 'success') {
+                    messageBox.classList.add('bg-green-100', 'text-green-800');
+                }
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                messageBox.classList.add('hidden'); // Clear previous message
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!username || !password) {
+                    showMessage('Please enter both Police ID and Password.', 'error');
+                    return;
+                }
+
+                // Temporary loading state for the button
+                const submitButton = form.querySelector('button');
+                const originalText = submitButton.textContent;
+                submitButton.textContent = 'Logging In...';
+                submitButton.disabled = true;
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        // Login Success - Store details and redirect
+                        localStorage.setItem('officerName', result.name); 
+                        localStorage.setItem('officerId', result.user_id); 
+                        
+                        showMessage(`Welcome, ${result.name}! Redirecting to dashboard...`, 'success');
+
+                        // 🚨 REDIRECTION HAPPENS HERE
+                        setTimeout(() => {
+                            window.location.href = 'police_dashboard.html';
+                        }, 1000); // Redirect after 1 second for the user to see the success message
+
+                    } else {
+                        // Login Failure (401, 400, 500 etc.)
+                        const errorMsg = result.error || "An unknown error occurred during login.";
+                        showMessage(`Login Failed: ${errorMsg}`, 'error');
+                        console.error('API Error:', result);
+                    }
+
+                } catch (error) {
+                    // Network or Fetch failure 
+                    console.error('Network Error:', error);
+                    showMessage('Could not connect to the server. Ensure the Flask API is running on port 8000.', 'error');
+                } finally {
+                    // Only restore button state if not redirecting immediately
+                    if (!response.ok) { 
+                        submitButton.textContent = originalText;
+                        submitButton.disabled = false;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

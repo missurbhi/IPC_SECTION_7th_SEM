@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Type Dashboard</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        /* Custom styles for better aesthetics */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-gray-900 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 mr-3 text-indigo-600">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125l7.247-7.247m0 0l7.247 7.247m-7.247-7.247V21M12 21h7.5" />
+                </svg>
+                Complaint Type Dashboard
+            </h1>
+            <p class="mt-2 text-gray-500">Visualization powered by Flask backend data</p>
+        </header>
+
+        <!-- Chart Card -->
+        <div class="bg-white p-6 sm:p-10 rounded-2xl shadow-2xl transition-all duration-300">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">
+                Complaint Breakdown
+            </h2>
+
+            <!-- Chart Canvas Container -->
+            <div class="chart-container">
+                <div id="loadingIndicator" class="loading-overlay hidden">
+                    <svg class="animate-spin h-8 w-8 text-indigo-500 mr-3" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-lg text-indigo-600 font-medium">Fetching Data from Flask...</span>
+                </div>
+                <canvas id="complaintChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Flask Integration Instructions -->
+        <div class="mt-8 p-6 bg-green-50 border border-green-200 rounded-xl shadow-md">
+            <h3 class="text-xl font-bold text-green-800 mb-3">Flask Backend Integration</h3>
+            <p class="text-green-700">
+                This client-side code is configured to fetch data from the Flask endpoint: 
+                <code class="bg-green-200 text-green-900 px-1 py-0.5 rounded text-sm font-mono">/get_all_complaints</code>.
+            </p>
+            <p class="mt-2 text-green-700">
+                You must implement this endpoint in Flask to return a JSON array of objects, 
+                where each object has a <code class="bg-green-200 text-green-900 px-1 py-0.5 rounded text-sm font-mono">complaintType</code> field (e.g., <code class="font-mono text-sm">{"complaintType": "Fraud"}</code>).
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Use an IIFE for encapsulation
+        (function() {
+            // Updated endpoint based on user's change
+            const CHART_ENDPOINT = '/get_all_complaints';
+            const chartCanvas = document.getElementById('complaintChart');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            // --- Updated Mock Data for Preview with specific complaint types ---
+            const MOCK_COMPLAINTS = [
+                { id: 1, complaintType: 'Fraud', details: 'Unauthorized transaction on account.' },
+                { id: 2, complaintType: 'Lost Document', details: 'Client file 45B missing.' },
+                { id: 3, complaintType: 'Assault', details: 'Reported incident near main entrance.' },
+                { id: 4, complaintType: 'Fraud', details: 'Phishing attempt via email.' },
+                { id: 5, complaintType: 'Lost Document', details: 'Personnel record misplaced.' },
+                { id: 6, complaintType: 'General Inquiry', details: 'Procedure for filing a claim.' },
+                { id: 7, complaintType: 'Assault', details: 'Verbal confrontation escalated.' },
+                { id: 8, complaintType: 'Lost Document', details: 'ID badge not found.' },
+                { id: 9, complaintType: 'Fraud', details: 'Identity theft concern.' },
+                { id: 10, complaintType: 'Assault', details: 'Physical harm reported.' },
+                { id: 11, complaintType: 'General Inquiry', details: 'Office hours question.' },
+            ];
+
+            /**
+             * Aggregates raw complaint data into counts by type.
+             * @param {Array<Object>} rawData - Array of complaint objects.
+             * @returns {Object} - { labels: Array<string>, counts: Array<number> }
+             */
+            function aggregateData(rawData) {
+                const counts = rawData.reduce((acc, complaint) => {
+                    // This is where the counting happens based on the specific type string
+                    const type = complaint.complaintType || 'Unknown';
+                    acc[type] = (acc[type] || 0) + 1;
+                    return acc;
+                }, {});
+
+                // Prepare Chart.js format
+                const labels = Object.keys(counts);
+                const countsArray = Object.values(counts);
+                
+                // Sort by count descending
+                const sortedPairs = labels.map((label, index) => [label, countsArray[index]])
+                    .sort((a, b) => b[1] - a[1]);
+
+                return {
+                    labels: sortedPairs.map(p => p[0]),
+                    counts: sortedPairs.map(p => p[1])
+                };
+            }
+
+            // Exponential backoff parameters
+            const MAX_RETRIES = 5;
+            const INITIAL_DELAY = 1000; // 1 second
+
+            /**
+             * Fetches data from the Flask backend with retries and renders the chart.
+             */
+            async function fetchWithRetry(url, retries = 0) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    if (retries < MAX_RETRIES) {
+                        const delay = INITIAL_DELAY * Math.pow(2, retries);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        // Recursive call with incremented retry count
+                        return fetchWithRetry(url, retries + 1);
+                    }
+                    // If max retries reached, throw the error
+                    throw error;
+                }
+            }
+
+            async function fetchAndRenderChart() {
+                loadingIndicator.classList.remove('hidden');
+
+                let rawData = [];
+                try {
+                    // Try to fetch from Flask endpoint with backoff
+                    rawData = await fetchWithRetry(CHART_ENDPOINT);
+                    
+                    if (!Array.isArray(rawData) || rawData.length === 0) {
+                        console.warn("Fetched data is empty or not an array after retries. Using mock data.");
+                        rawData = MOCK_COMPLAINTS;
+                    }
+                } catch (error) {
+                    // If fetching failed after all retries (e.g., CORS, network failure)
+                    console.error('Final error fetching data, using mock data:', error);
+                    rawData = MOCK_COMPLAINTS; 
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+                
+                const { labels, counts } = aggregateData(rawData);
+                
+                // Destroy existing chart instance if it exists
+                if (window.myChart) {
+                    window.myChart.destroy();
+                }
+
+                // Render Chart.js
+                window.myChart = new Chart(chartCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Number of Complaints',
+                            data: counts,
+                            backgroundColor: labels.map(label => {
+                                // Dynamic coloring based on complaint type for visual distinction
+                                if (label === 'Assault') return '#ef4444'; // Red-500
+                                if (label === 'Fraud') return '#f97316'; // Orange-500
+                                if (label === 'Lost Document') return '#0ea5e9'; // Sky-500
+                                return '#4f46e5'; // Default Indigo-600
+                            }),
+                            borderColor: labels.map(label => {
+                                if (label === 'Assault') return '#b91c1c';
+                                if (label === 'Fraud') return '#c2410c';
+                                if (label === 'Lost Document') return '#0284c7';
+                                return '#3730a3';
+                            }),
+                            borderWidth: 1,
+                            borderRadius: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                            tooltip: {
+                                // Simple tooltip configuration
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleFont: { size: 16 },
+                                bodyFont: { size: 14 },
+                                padding: 10,
+                                displayColors: true
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    // Ensure y-axis ticks are integers
+                                    callback: function(value) { if (value % 1 === 0) { return value; } }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Count'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Complaint Type'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Start the process when the window loads
+            window.onload = fetchAndRenderChart;
+            
+            // Re-render chart on window resize for responsiveness
+            window.addEventListener('resize', () => {
+                if (window.myChart) {
+                    window.myChart.resize();
+                }
+            });
+
+        })();
+    </script>
+</body>
+</html>

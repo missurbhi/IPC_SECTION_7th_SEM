@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online FIR Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-indigo-700 text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold rounded-lg px-3 py-1 hover:bg-indigo-600 transition-colors duration-300">FIR Online</a>
+            <div class="md:hidden">
+                <button id="menu-button" class="text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="nav-menu" class="hidden md:flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0 mt-2 md:mt-0">
+                <!-- These links are currently placeholders. You would create a separate HTML file for each one to make them work. -->
+                <a href="home.html" class="px-3 py-2 rounded-lg hover:bg-indigo-600 transition-colors duration-300">Home</a>
+                <a href="about.html" class="px-3 py-2 rounded-lg hover:bg-indigo-600 transition-colors duration-300">About</a>
+                <a href="contact.html" class="px-3 py-2 rounded-lg hover:bg-indigo-600 transition-colors duration-300">Contact</a>
+                <a href="login.html" class="px-3 py-2 rounded-lg hover:bg-indigo-600 transition-colors duration-300">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow container mx-auto p-4 md:p-8">
+        <div class="max-w-3xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-2xl">
+            <h1 class="text-3xl font-bold text-center mb-6 text-indigo-800">File Your Complaint (FIR)</h1>
+            <p class="text-center text-gray-600 mb-8">Please fill out the form below to file a First Information Report. Fill the details accurately to make sure your report is valid. All fields are required unless marked otherwise.</p>
+
+            <!-- Progress Bar -->
+            <div class="relative pt-1 mb-8">
+                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded-full bg-gray-200">
+                    <div id="progress-bar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500 transition-all duration-500" style="width: 0%;"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 font-medium">
+                    <span id="step-1-label" class="text-indigo-600">Complainant Details</span>
+                    <span id="step-2-label">Incident Details</span>
+                    <span id="step-3-label">Accused & Witnesses</span>
+                    <span id="step-4-label">Review & Submit</span>
+                </div>
+            </div>
+
+            <!-- Multi-step Form -->
+            <form id="fir-form">
+
+                <!-- Step 1: Complainant Details -->
+                <div id="step-1" class="form-step">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-700">Step 1: Complainant Details</h2>
+                    <div class="space-y-4">
+                        <label class="block">
+                            <span class="text-gray-700">Full Name</span>
+                            <input type="text" id="complainant-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" required>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Father's / Husband's Name</span>
+                            <input type="text" id="complainant-father-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" required>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Address</span>
+                            <textarea id="complainant-address" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" required></textarea>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Mobile Number</span>
+                            <input type="tel" id="complainant-mobile" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" required>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Email Address (Optional)</span>
+                            <input type="email" id="complainant-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
+                        </label>
+                    </div>
+                    <div class="flex justify-end mt-6">
+                        <button type="button" onclick="nextStep()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Incident Details -->
+                <div id="step-2" class="form-step hidden">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-700">Step 2: Incident Details</h2>
+                    <div class="space-y-4">
+                        <label class="block">
+                            <span class="text-gray-700">Date of Incident</span>
+                            <input type="date" id="incident-date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" required>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Time of Incident</span>
+                            <input type="time" id="incident-time" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" required>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Place of Occurrence</span>
+                            <input type="text" id="incident-place" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="e.g., Near XYZ Mall, ABC street" required>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Nature of Offence</span>
+                            <select id="offence-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" required>
+                                <option value="">Select an offence</option>
+                                <option value="Theft">Theft</option>
+                                <option value="Assault">Assault</option>
+                                <option value="Fraud">Fraud</option>
+                                <option value="Lost_Document">Lost Document/Item</option>
+                                <option value="Cybercrime">Cybercrime</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Describe the Incident</span>
+                            <textarea id="incident-description" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" placeholder="Describe the events in your own words, including what led to the incident and what happened." required></textarea>
+                        </label>
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevStep()" class="px-6 py-2 bg-gray-400 text-white rounded-lg shadow-md hover:bg-gray-500 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2">Previous</button>
+                        <button type="button" onclick="nextStep()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Accused & Witnesses -->
+                <div id="step-3" class="form-step hidden">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-700">Step 3: Accused & Witnesses</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-medium text-gray-700">Accused Details (Optional)</h3>
+                            <div class="bg-gray-100 p-4 rounded-lg mt-2 space-y-3">
+                                <label class="block">
+                                    <span class="text-gray-700">Name of Accused</span>
+                                    <input type="text" id="accused-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
+                                </label>
+                                <label class="block">
+                                    <span class="text-gray-700">Address of Accused</span>
+                                    <input type="text" id="accused-address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
+                                </label>
+                                <label class="block">
+                                    <span class="text-gray-700">Physical Description</span>
+                                    <textarea id="accused-description" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"></textarea>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-medium text-gray-700 mt-6">Witness Details (Optional)</h3>
+                            <div id="witness-container" class="space-y-3 mt-2">
+                                <div class="bg-gray-100 p-4 rounded-lg flex flex-col space-y-2">
+                                    <label class="block">
+                                        <span class="text-gray-700">Witness 1 Name</span>
+                                        <input type="text" class="witness-name mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
+                                    </label>
+                                    <label class="block">
+                                        <span class="text-gray-700">Witness 1 Mobile</span>
+                                        <input type="tel" class="witness-mobile mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="button" onclick="addWitness()" class="mt-4 px-4 py-2 bg-indigo-500 text-white text-sm rounded-lg shadow-md hover:bg-indigo-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Add Another Witness</button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevStep()" class="px-6 py-2 bg-gray-400 text-white rounded-lg shadow-md hover:bg-gray-500 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2">Previous</button>
+                        <button type="button" onclick="nextStep()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Review & Submit -->
+                <div id="step-4" class="form-step hidden">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-700">Step 4: Review & Submit</h2>
+                    <div id="review-content" class="bg-gray-100 p-6 rounded-xl space-y-4 text-gray-800">
+                        <!-- Content will be generated by JS -->
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevStep()" class="px-6 py-2 bg-gray-400 text-white rounded-lg shadow-md hover:bg-gray-500 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2">Previous</button>
+                        <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">Submit FIR</button>
+                    </div>
+                </div>
+
+            </form>
+
+            <!-- Custom Alert/Modal -->
+            <div id="custom-alert" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
+                <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
+                    <p id="alert-message" class="text-center text-lg font-medium mb-4"></p>
+                    <div class="flex justify-center">
+                        <button onclick="closeAlert()" class="px-4 py-2 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-indigo-700 text-white p-4 text-center mt-auto">
+        <p class="text-sm">© 2024 FIR Online. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

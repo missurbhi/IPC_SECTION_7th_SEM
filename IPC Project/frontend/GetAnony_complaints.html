@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View All Anonymous Tips</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary-blue': '#1e40af',
+                        'soft-gray': '#f3f4f6',
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-soft-gray min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-2xl p-6 md:p-10">
+        
+        <header class="mb-8 border-b pb-4">
+            <h1 class="text-3xl font-extrabold text-gray-800">Received Anonymous Tips</h1>
+            <p class="text-md text-gray-500 mt-1">
+                Real-time feed of all tips submitted to the system.
+            </p>
+        </header>
+
+        <!-- Status and Loading Indicator -->
+        <div id="status-message" class="p-4 mb-6 rounded-lg text-sm text-center bg-blue-100 text-blue-700 font-medium">
+            Loading tips...
+        </div>
+
+        <!-- Table Container -->
+        <div class="overflow-x-auto rounded-lg shadow-inner border border-gray-200">
+            <table id="tips-table" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-primary-blue/90 text-white sticky top-0">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">FIR Ref</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Location</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider hidden md:table-cell">Tip Details</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="tips-body" class="bg-white divide-y divide-gray-100">
+                    <!-- Tip rows will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <p id="no-tips-message" class="text-center text-gray-500 p-6 hidden">No anonymous tips have been submitted yet.</p>
+
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/get_tips';
+        const statusMessage = document.getElementById('status-message');
+        const tipsBody = document.getElementById('tips-body');
+        const noTipsMessage = document.getElementById('no-tips-message');
+
+        /**
+         * Utility function to update the status box style and message.
+         * @param {string} message - The text message to display.
+         * @param {string} type - 'success', 'error', or 'info'.
+         */
+        const updateStatus = (message, type) => {
+            const classes = {
+                'success': 'bg-green-100 text-green-700',
+                'error': 'bg-red-100 text-red-700',
+                'info': 'bg-blue-100 text-blue-700'
+            };
+            statusMessage.className = `p-4 mb-6 rounded-lg text-sm text-center font-medium ${classes[type]}`;
+            statusMessage.textContent = message;
+        };
+
+        /**
+         * Truncates text for display in the table, with a max length.
+         */
+        const truncateText = (text, maxLength = 80) => {
+            if (!text) return '';
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        };
+
+        /**
+         * Formats the ISO date string into a more readable format.
+         */
+        const formatDate = (isoDate) => {
+            try {
+                return new Date(isoDate).toLocaleDateString('en-US', { 
+                    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                });
+            } catch (e) {
+                return isoDate || 'N/A';
+            }
+        };
+
+
+        /**
+         * Renders the fetched tips into the table body.
+         * @param {Array<Object>} tips - Array of tip objects.
+         */
+        const renderTips = (tips) => {
+            tipsBody.innerHTML = '';
+            if (tips.length === 0) {
+                noTipsMessage.classList.remove('hidden');
+                updateStatus("Successfully connected, but no tips found in the database.", 'info');
+                return;
+            }
+
+            noTipsMessage.classList.add('hidden');
+
+            tips.forEach((tip, index) => {
+                const row = document.createElement('tr');
+                // Alternating row colors for readability
+                row.className = index % 2 === 0 ? 'bg-white hover:bg-gray-50 transition' : 'bg-soft-gray hover:bg-gray-100 transition';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${tip.tip_id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${tip.related_fir_id || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${tip.incident_type}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700">${tip.incident_location}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500 hidden md:table-cell">${truncateText(tip.tip_text)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(tip.submission_timestamp)}</td>
+                `;
+                tipsBody.appendChild(row);
+            });
+            updateStatus(`Successfully loaded ${tips.length} anonymous tip(s).`, 'success');
+        };
+
+        /**
+         * Fetches tips from the API.
+         */
+        const fetchTips = async () => {
+            updateStatus("Connecting to server and retrieving data...", 'info');
+            try {
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    const errorDetails = await response.json();
+                    throw new Error(errorDetails.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                const tips = await response.json();
+                renderTips(tips);
+
+            } catch (error) {
+                console.error("Failed to fetch tips:", error);
+                updateStatus(`Error: Could not retrieve tips. Check the API server. Details: ${error.message}`, 'error');
+                tipsBody.innerHTML = '';
+                noTipsMessage.classList.remove('hidden');
+            }
+        };
+
+        // Fetch tips when the page loads
+        document.addEventListener('DOMContentLoaded', fetchTips);
+    </script>
+</body>
+</html>

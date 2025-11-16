@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surbhi's Home Tutoring</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* A soft, light blue-gray */
+        }
+        .text-shadow-custom {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(to right, #0891b2, #10b981);
+            width: 80px;
+            margin: 0 auto;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header Section -->
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-teal-600">Surbhi's Tutoring</a>
+            <div class="hidden md:flex space-x-6">
+                <a href="#about" class="text-gray-600 hover:text-teal-500 transition duration-300">About</a>
+                <a href="#subjects" class="text-gray-600 hover:text-teal-500 transition duration-300">Subjects</a>
+                <a href="#testimonials" class="text-gray-600 hover:text-teal-500 transition duration-300">Testimonials</a>
+                <a href="#contact" class="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition duration-300 shadow-md">Contact Us</a>
+            </div>
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-teal-500 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-4 6h4"></path>
+                </svg>
+            </button>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-inner pb-4">
+            <a href="#about" class="block py-2 px-6 text-gray-600 hover:bg-gray-100 transition duration-300">About</a>
+            <a href="#subjects" class="block py-2 px-6 text-gray-600 hover:bg-gray-100 transition duration-300">Subjects</a>
+            <a href="#testimonials" class="block py-2 px-6 text-gray-600 hover:bg-gray-100 transition duration-300">Testimonials</a>
+            <a href="#contact" class="block py-2 px-6 text-teal-600 hover:bg-gray-100 transition duration-300 font-medium">Contact Us</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-br from-cyan-500 to-teal-500 text-white py-20 md:py-32">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4 text-shadow-custom">
+                    Personalized Home Tutoring in Indore
+                </h1>
+                <p class="text-lg md:text-2xl font-light mb-8 max-w-2xl mx-auto">
+                    Expert guidance in **Maths, Science, English & Hindi** for students from Class 1st to 10th.
+                </p>
+                <a href="#contact" class="px-8 py-4 bg-white text-teal-600 font-bold rounded-full shadow-lg hover:bg-gray-100 transition duration-300 transform hover:scale-105">
+                    Start Your Learning Journey
+                </a>
+            </div>
+        </section>
+
+        <!-- About Me Section -->
+        <section id="about" class="py-16 md:py-24">
+            <div class="container mx-auto px-6">
+                <div class="max-w-4xl mx-auto text-center">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">About Me</h2>
+                    <div class="section-divider mb-8"></div>
+                    <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                        Hello! My name is Surbhi, and I am a Mtech IT Student and also i am passionate and dedicated home tutor based in **Indore**. I believe that every student has the potential to excel with the right guidance. My approach goes beyond just textbook learning; I focus on building a strong foundation, encouraging critical thinking, and making learning an enjoyable process.
+                    </p>
+                    <p class="text-lg text-gray-600 leading-relaxed">
+                        With personalized attention, I help students overcome their challenges and achieve their academic goals. I am committed to creating a supportive and positive learning environment right at your home.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Subjects Section -->
+        <section id="subjects" class="bg-white py-16 md:py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-4">Subjects I Specialize In</h2>
+                <div class="section-divider mb-12"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+                    <!-- Subject Card: Maths -->
+                    <div class="bg-gray-50 p-6 rounded-3xl shadow-lg card-hover transition duration-300 text-center">
+                        <img src="https://placehold.co/150x150/e0f2fe/075985?text=Maths" alt="Maths tutoring" class="mx-auto mb-4 rounded-full w-24 h-24 object-cover">
+                        <h3 class="text-xl font-bold text-teal-600 mb-2">Maths</h3>
+                        <p class="text-gray-600">Making complex concepts simple and helping students build a strong foundation in algebra, geometry, and arithmetic.</p>
+                    </div>
+
+                    <!-- Subject Card: Science -->
+                    <div class="bg-gray-50 p-6 rounded-3xl shadow-lg card-hover transition duration-300 text-center">
+                        <img src="https://placehold.co/150x150/dcfce7/065f46?text=Science" alt="Science tutoring" class="mx-auto mb-4 rounded-full w-24 h-24 object-cover">
+                        <h3 class="text-xl font-bold text-teal-600 mb-2">Science</h3>
+                        <p class="text-gray-600">Bringing the world of physics, chemistry, and biology to life with engaging and practical examples.</p>
+                    </div>
+
+                    <!-- Subject Card: English -->
+                    <div class="bg-gray-50 p-6 rounded-3xl shadow-lg card-hover transition duration-300 text-center">
+                        <img src="https://placehold.co/150x150/f0f9ff/0c4a6e?text=English" alt="English tutoring" class="mx-auto mb-4 rounded-full w-24 h-24 object-cover">
+                        <h3 class="text-xl font-bold text-teal-600 mb-2">English</h3>
+                        <p class="text-gray-600">Improving grammar, vocabulary, reading comprehension, and creative writing skills for confident communication.</p>
+                    </div>
+
+                    <!-- Subject Card: Hindi -->
+                    <div class="bg-gray-50 p-6 rounded-3xl shadow-lg card-hover transition duration-300 text-center">
+                        <img src="https://placehold.co/150x150/ffe4e6/be123c?text=Hindi" alt="Hindi tutoring" class="mx-auto mb-4 rounded-full w-24 h-24 object-cover">
+                        <h3 class="text-xl font-bold text-teal-600 mb-2">Hindi</h3>
+                        <p class="text-gray-600">Specialized guidance in Hindi grammar, literature, and spoken language for all academic needs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Testimonials Section -->
+        <section id="testimonials" class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-4">What Parents Say</h2>
+                <div class="section-divider mb-12"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Testimonial 1 -->
+                    <div class="bg-white p-8 rounded-3xl shadow-lg transition duration-300 transform hover:scale-105">
+                        <p class="text-lg text-gray-700 italic mb-4">
+                            "Surbhi's teaching has been a game-changer for my daughter. Her confidence in Maths has soared, and her grades have improved significantly. She is patient, knowledgeable, and genuinely cares about her students' success."
+                        </p>
+                        <p class="font-bold text-teal-600">- Mrs. Sharma, Parent of a 7th Grader</p>
+                    </div>
+                    <!-- Testimonial 2 -->
+                    <div class="bg-white p-8 rounded-3xl shadow-lg transition duration-300 transform hover:scale-105">
+                        <p class="text-lg text-gray-700 italic mb-4">
+                            "Finding a tutor who can teach both English and Hindi so effectively was a challenge. Surbhi has a unique way of making both subjects interesting. My son now enjoys reading and writing more than ever!"
+                        </p>
+                        <p class="font-bold text-teal-600">- Mr. Kumar, Parent of a 5th Grader</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="bg-gradient-to-br from-cyan-500 to-teal-500 text-white py-16 md:py-24">
+            <div class="container mx-auto px-6 text-center max-w-2xl">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Start?</h2>
+                <div class="section-divider mx-auto mb-8 bg-white"></div>
+                <p class="text-lg mb-8">
+                    I am currently accepting new students for home tutoring in **Indore**. Let's discuss how I can help your child succeed.
+                </p>
+                <div class="bg-white text-gray-800 p-8 rounded-3xl shadow-2xl">
+                    <h3 class="text-2xl font-bold text-teal-600 mb-4">Get in Touch</h3>
+                    <div class="space-y-4">
+                        <p class="text-lg">
+                            <span class="font-semibold text-gray-600">Phone:</span>
+                            <a href="tel:+919876543210" class="text-teal-600 hover:underline">+91 98938 34235</a>
+                        </p>
+                        <p class="text-lg">
+                            <span class="font-semibold text-gray-600">Email:</span>
+                            <a href="mailto:sanjay.tutoring@email.com" class="text-teal-600 hover:underline">surbhiver073@email.com</a>
+                        </p>
+                        <p class="text-lg font-semibold text-gray-600">
+                            **Location: LIG Indore, Madhya Pradesh**
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 text-gray-400 py-6">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 Surbhi's Home Tutoring. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle functionality
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+
+                // Hide mobile menu after clicking a link
+                mobileMenu.classList.add('hidden');
+            });
+        });
+    </script>
+
+</body>
+</html>

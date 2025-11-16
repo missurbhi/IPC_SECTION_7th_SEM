@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rejected Complaints - Police Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Status Badges */
+        .rejected { background-color: #fee2e2; color: #991b1b; } 
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Police Navigation Bar -->
+    <nav class="bg-indigo-800 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="text-2xl font-bold mb-2 md:mb-0">Police Portal</div>
+            <div class="flex flex-wrap justify-center space-x-2 md:space-x-4">
+                <a href="police_dashboard.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Home</a>
+                <a href="all_complaints.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Total Complaints</a>
+                <a href="pending_complaints.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Pending</a>
+                <a href="accepted_complaints.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Accepted</a>
+                <a href="rejected_complaints.html" class="px-4 py-2 rounded-lg bg-indigo-700 font-semibold transition-colors duration-200">Rejected</a>
+                <a href="First.html" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition-colors duration-200">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 md:p-8 flex-grow">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-2 text-red-700">Rejected Complaints</h1>
+
+        <!-- Loading/Message Box -->
+        <div id="status-message-box" class="text-center p-4 rounded-lg hidden transition-opacity duration-300"></div>
+        <div id="no-complaints-message" class="text-center p-8 bg-white rounded-xl shadow-md hidden">
+            <p class="text-lg font-medium text-gray-600">No complaints have been rejected yet.</p>
+        </div>
+
+        <!-- Complaints Table -->
+        <div class="bg-white rounded-xl shadow-2xl overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Complainant</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Place</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Offence / Description</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted IPC</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rejection Reason</th>
+                    </tr>
+                </thead>
+                <tbody id="complaints-list" class="bg-white divide-y divide-gray-200">
+                    <!-- Complaint rows will be injected here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        const complaintsList = document.getElementById('complaints-list');
+        const messageBox = document.getElementById('status-message-box');
+        const noComplaintsMessage = document.getElementById('no-complaints-message');
+
+        // --- UI Feedback Management ---
+        function showMessage(message, type = 'loading') {
+            let bgColor, textColor, icon;
+            if (type === 'loading') {
+                bgColor = 'bg-yellow-100'; textColor = 'text-yellow-800'; icon = '⏳';
+            } else if (type === 'success') {
+                bgColor = 'bg-green-100'; textColor = 'text-green-800'; icon = '✅';
+            } else if (type === 'error') {
+                bgColor = 'bg-red-100'; textColor = 'text-red-800'; icon = '❌';
+            }
+
+            messageBox.className = `text-center p-4 rounded-lg mb-6 ${bgColor} ${textColor}`;
+            messageBox.innerHTML = `<p class="font-medium">${icon} ${message}</p>`;
+            messageBox.classList.remove('hidden');
+
+            if (type !== 'loading') {
+                setTimeout(() => messageBox.classList.add('hidden'), 5000);
+            }
+        }
+        
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        // --- Complaint Rendering ---
+        
+        /**
+         * Renders the complaints table from the fetched data.
+         * @param {Array<Object>} rejectedComplaints - Array of rejected complaint objects.
+         */
+        function renderComplaints(rejectedComplaints) {
+            complaintsList.innerHTML = '';
+            
+            if (!Array.isArray(rejectedComplaints) || rejectedComplaints.length === 0) {
+                noComplaintsMessage.classList.remove('hidden');
+                return;
+            }
+
+            noComplaintsMessage.classList.add('hidden');
+
+            rejectedComplaints.forEach(complaint => {
+                // Status is hardcoded to 'Rejected' for this page
+                const statusHtml = `<span class="status-badge rejected">Rejected</span>`;
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-100 transition duration-150';
+                row.setAttribute('data-id', complaint.id);
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${complaint.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <span class="font-medium">${complaint.complainant_name || 'N/A'}</span><br>
+                        <span class="text-xs text-gray-500">Accused: ${complaint.accused_name || 'N/A'}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        ${complaint.incident_date || 'N/A'}<br>
+                        <span class="text-xs text-gray-500">${complaint.incident_place || 'N/A'}</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">
+                        <span class="font-semibold">${complaint.offence_type || 'N/A'}</span>: 
+                        ${complaint.incident_description || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-medium">
+                        ${complaint.predicted_ipc || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        ${statusHtml}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-red-700 max-w-xs">
+                        <!-- Display the rejection reason -->
+                        ${complaint.rejection_reason || 'No reason provided.'}
+                    </td>
+                `;
+                complaintsList.appendChild(row);
+            });
+        }
+
+        // --- API Calls ---
+
+        /**
+         * Fetches rejected complaints from the Flask API.
+         */
+        async function fetchComplaints() {
+            showMessage("Loading rejected complaints...", 'loading');
+            
+            try {
+                // Endpoint already set to fetch rejected complaints
+                const response = await fetch(`${API_BASE_URL}/get_rejected_complaints`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const complaintsData = await response.json(); 
+                
+                if (Array.isArray(complaintsData)) {
+                    renderComplaints(complaintsData); 
+                } else {
+                    showMessage("API returned unexpected data format.", 'error');
+                }
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                showMessage("Error loading complaints. Please check server connection.", 'error');
+            } finally {
+                if (messageBox.classList.contains('bg-yellow-100')) {
+                    hideMessage(); // Hide loading message if success or caught error handled in catch block
+                }
+            }
+        }
+        
+        // Removed: updateComplaintStatus, handleAccept, showRejectModal, hideRejectModal, and modal listeners.
+
+        // Initialize the page
+        window.onload = fetchComplaints;
+    </script>
+</body>
+</html>

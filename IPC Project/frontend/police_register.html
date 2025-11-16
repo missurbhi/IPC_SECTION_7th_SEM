@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Officer Registration</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for a modern, official look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e5e7eb; /* Light gray background */
+        }
+        .form-container {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="form-container bg-white p-8 md:p-10 rounded-2xl max-w-md w-full border-t-4 border-indigo-600">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-2 text-center">
+            Officer Registration
+        </h1>
+        <p class="text-gray-500 mb-8 text-center">
+            Register a new police account for the system.
+        </p>
+
+        <!-- Registration Form -->
+        <form id="registration-form" class="space-y-6">
+            
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="E.g., Officer John Doe"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-300"
+                    required>
+            </div>
+
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username (Police ID)</label>
+                <input type="text" id="username" name="username" placeholder="Unique ID for login"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-300"
+                    required>
+            </div>
+            
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input type="password" id="password" name="password" placeholder="Must be secure"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-300"
+                    required>
+            </div>
+
+            <div id="message-box" class="text-sm px-3 py-2 rounded-lg transition-all duration-300 min-h-8 text-center"></div>
+
+            <button type="submit" id="register-btn"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg disabled:opacity-50">
+                <span class="text-lg">Register Account</span>
+            </button>
+        </form>
+
+        <a href="police_login.html" 
+            class="mt-6 w-full inline-block text-center text-indigo-600 hover:text-indigo-800 transition-colors duration-300 font-medium text-sm">
+            Already registered? Login here.
+        </a>
+        <a href="First.html" 
+            class="mt-3 w-full inline-block text-center text-gray-600 hover:text-gray-800 transition-colors duration-300 font-medium text-sm">
+            ← Back to Home
+        </a>
+    </div>
+
+    <script>
+        const registrationForm = document.getElementById('registration-form');
+        const messageBox = document.getElementById('message-box');
+        const registerBtn = document.getElementById('register-btn');
+
+        // Function to display messages (custom alert)
+        function displayMessage(msg, type = 'error') {
+            messageBox.textContent = msg;
+            messageBox.classList.remove('text-red-500', 'bg-red-100', 'text-green-600', 'bg-green-100', 'text-blue-600', 'bg-blue-100');
+            if (type === 'success') {
+                messageBox.classList.add('text-green-600', 'bg-green-100');
+            } else if (type === 'info') {
+                 messageBox.classList.add('text-blue-600', 'bg-blue-100');
+            } else {
+                messageBox.classList.add('text-red-500', 'bg-red-100');
+            }
+        }
+
+        // Handle the registration form submission
+        registrationForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+            
+            const name = document.getElementById('name').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!name || !username || !password) {
+                displayMessage('Please fill out all fields.', 'error');
+                return;
+            }
+
+            registerBtn.disabled = true;
+            displayMessage('Registering officer...', 'info');
+
+            // IMPORTANT: This URL must match the Flask server configuration (app.py)
+            const apiUrl = 'http://127.0.0.1:8000/register';
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Successful Registration (Status 201)
+                    displayMessage(`Registration successful! Welcome, ${name}. Redirecting to login...`, 'success');
+                    // Redirect to login page after a short delay
+                    setTimeout(() => {
+                        // Assuming police_login.html exists
+                        window.location.href = 'police_login.html'; 
+                    }, 2000);
+                    
+                } else {
+                    // Failed Registration (Status 400/500 - controlled by the backend)
+                    displayMessage(data.error || 'Registration failed due to an unknown error.', 'error');
+                }
+
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                displayMessage('Network error. Could not connect to the Flask server. Please ensure the backend is running on port 8000.', 'error');
+            } finally {
+                registerBtn.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+</html>

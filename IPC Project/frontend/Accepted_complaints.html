@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accepted Complaints - Police Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .action-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .action-button:hover {
+            transform: translateY(-1px);
+        }
+        /* Status Badges */
+        .accepted { background-color: #d1fae5; color: #065f46; } /* Light green for accepted */
+        .rejected { background-color: #fee2e2; color: #991b1b; } /* Light red for rejected */
+        .pending { background-color: #fffbeb; color: #92400e; } /* Light yellow for pending */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* full rounded */
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Police Navigation Bar -->
+    <nav class="bg-indigo-800 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="text-2xl font-bold mb-2 md:mb-0">Police Portal</div>
+            <div class="flex flex-wrap justify-center space-x-2 md:space-x-4">
+                <a href="police_dashboard.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Home</a>
+                <a href="all_complaints.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Total Complaints</a>
+                <a href="pending_complaints.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Pending</a>
+                <a href="accepted_complaints.html" class="px-4 py-2 rounded-lg bg-indigo-700 font-semibold transition-colors duration-200">Accepted</a>
+                <a href="rejected_complaints.html" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">Rejected</a>
+                <a href="First.html" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition-colors duration-200">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 md:p-8 flex-grow">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-2 text-green-700">Accepted Complaints</h1>
+
+        <!-- Loading/Message Box -->
+        <div id="loading-message" class="text-center p-4 bg-yellow-100 text-yellow-800 rounded-lg hidden">
+            <p>Loading complaints...</p>
+        </div>
+        <div id="error-message" class="text-center p-4 bg-red-100 text-red-800 rounded-lg hidden">
+            <p>Error loading complaints. Please check server connection.</p>
+        </div>
+        <div id="no-complaints-message" class="text-center p-8 bg-white rounded-xl shadow-md hidden">
+            <p class="text-lg font-medium text-gray-600">No accepted complaints found.</p>
+        </div>
+
+        <!-- Complaints Table -->
+        <div class="bg-white rounded-xl shadow-2xl overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Complainant</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Place</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Offence / Description</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted IPC</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="complaints-list" class="bg-white divide-y divide-gray-200">
+                    <!-- Complaint rows will be injected here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Custom Confirmation Modal (Placeholder, actions are disabled for Accepted/Rejected) -->
+        <div id="confirmation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+                <h3 class="text-xl font-semibold mb-4 text-gray-900">Confirm Status Update</h3>
+                <p id="modal-text" class="mb-6 text-gray-700">Are you sure you want to change the status of complaint <span id="modal-complaint-id" class="font-bold"></span> to <span id="modal-new-status" class="font-bold"></span>?</p>
+                <div class="flex justify-end space-x-4">
+                    <button id="modal-cancel-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition">Cancel</button>
+                    <button id="modal-confirm-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Base URL for your Flask API
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        const complaintsList = document.getElementById('complaints-list');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorMessage = document.getElementById('error-message');
+        const noComplaintsMessage = document.getElementById('no-complaints-message');
+        
+        // Modal elements (Note: these won't be used on this page since status is finalized)
+        const modal = document.getElementById('confirmation-modal');
+        const modalComplaintId = document.getElementById('modal-complaint-id');
+        const modalNewStatus = document.getElementById('modal-new-status');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+        // Global state for modal action
+        let pendingUpdate = { id: null, status: null };
+
+        /**
+         * Safely parses JSON string, defaulting to an empty array on failure.
+         * @param {string | null} jsonString 
+         * @returns {Array}
+         */
+        function safeJsonParse(jsonString) {
+            if (!jsonString) return [];
+            try {
+                return JSON.parse(String(jsonString));
+            } catch (e) {
+                console.error("Error parsing JSON string:", jsonString, e);
+                return [];
+            }
+        }
+
+        /**
+         * Renders the complaints table from the fetched data.
+         * @param {Array<Object>} complaints - Array of complaint objects.
+         */
+        function renderComplaints(complaints) {
+            complaintsList.innerHTML = '';
+            
+            // Filter to show ONLY accepted complaints
+            const acceptedComplaints = complaints.filter(c => (c.status || '').toLowerCase() === 'accepted');
+
+            if (!Array.isArray(acceptedComplaints) || acceptedComplaints.length === 0) {
+                noComplaintsMessage.classList.remove('hidden');
+                return;
+            }
+
+            noComplaintsMessage.classList.add('hidden');
+
+            acceptedComplaints.forEach(complaint => {
+                // Safely parse witnesses field (assuming it's stored as a JSON string)
+                const witnesses = safeJsonParse(complaint.witnesses);
+                const witnessesHtml = witnesses.length > 0
+                    ? witnesses.map(w => `<span class="font-medium">${w.name}</span> (${w.contact})`).join(', ')
+                    : 'N/A';
+                
+                // Determine status badge class (will always be 'accepted' here)
+                const status = complaint.status || 'Accepted'; 
+                const statusClass = status.toLowerCase();
+                const statusHtml = `<span class="status-badge ${statusClass}">${status}</span>`;
+                
+                // Actions column shows status final since they are already accepted
+                const actionsHtml = `<span class="text-gray-500 text-sm">Status Final</span>`;
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-100 transition duration-150';
+                row.setAttribute('data-id', complaint.id);
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">${complaint.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <span class="font-medium">${complaint.complainant_name || 'N/A'}</span><br>
+                        <span class="text-xs text-gray-500">Accused: ${complaint.accused_name || 'N/A'}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        ${complaint.incident_date || 'N/A'}<br>
+                        <span class="text-xs text-gray-500">${complaint.incident_place || 'N/A'}</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">
+                        <span class="font-semibold">${complaint.offence_type || 'N/A'}</span>: 
+                        ${complaint.incident_description || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-medium">
+                        ${complaint.predicted_ipc || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        ${statusHtml}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        ${actionsHtml}
+                    </td>
+                `;
+                complaintsList.appendChild(row);
+            });
+        }
+
+        /**
+         * Fetches all complaints from the Flask API, then filters for 'Accepted'.
+         */
+        async function fetchComplaints() {
+            loadingMessage.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            noComplaintsMessage.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/get_all_complaints`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const complaintsData = await response.json(); 
+                
+                if (Array.isArray(complaintsData)) {
+                    // This is the key difference: it filters the data before rendering
+                    renderComplaints(complaintsData); 
+                } else {
+                    console.error("API returned non-array data:", complaintsData);
+                    errorMessage.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                errorMessage.classList.remove('hidden');
+            } finally {
+                loadingMessage.classList.add('hidden');
+            }
+        }
+
+        // The modal functions are included for completeness but won't be triggered
+        // as the action buttons are removed on this page.
+
+        function showConfirmationModal(id, status) {
+            // No action needed for accepted page
+        }
+
+        function closeConfirmationModal() {
+            // No action needed for accepted page
+        }
+
+        function updateComplaintStatus() {
+            // No action needed for accepted page
+        }
+
+        // Attach event listeners
+        window.onload = fetchComplaints;
+        
+    </script>
+</body>
+</html>
